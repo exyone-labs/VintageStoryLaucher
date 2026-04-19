@@ -1,0 +1,138 @@
+<UserControl x:Class="VSL.UI.Views.Pages.VersionProfilesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             mc:Ignorable="d"
+             d:DesignHeight="860"
+             d:DesignWidth="1180">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="2,0,0,12">
+            <TextBlock Style="{DynamicResource VslPageTitleStyle}" Text="版本与档案" />
+            <TextBlock Style="{DynamicResource VslPageSubTitleStyle}"
+                       Text="安装服务端版本、创建档案，并在右侧页面继续配置。"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="12" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <ui:Card Grid.Row="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0">
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="服务端版本管理" />
+                        <TextBlock Margin="0,4,0,0"
+                                   Foreground="{DynamicResource VslMutedTextBrush}"
+                                   Text="选择版本后可直接安装，或导入本地 ZIP 包" />
+                    </StackPanel>
+
+                    <Border Grid.Row="1" Style="{DynamicResource VslActionBarHostStyle}">
+                        <WrapPanel>
+                            <CheckBox Content="显示不稳定版 (RC)"
+                                      IsChecked="{Binding IncludeUnstable}"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,12,8" />
+                            <TextBlock Text="目标版本"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,8" />
+                            <ComboBox Width="250"
+                                      Margin="0,0,8,8"
+                                      ItemsSource="{Binding Releases}"
+                                      SelectedItem="{Binding SelectedRelease}"
+                                      DisplayMemberPath="DisplayName" />
+                            <Button Content="刷新列表"
+                                    Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding RefreshReleasesCommand}" />
+                            <Button Content="导入本地 ZIP"
+                                    Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding ImportLocalServerZipCommand}" />
+                            <Button Content="安装选中版本"
+                                    Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding InstallSelectedReleaseCommand}" />
+                        </WrapPanel>
+                    </Border>
+                </Grid>
+            </ui:Card>
+
+            <ui:Card Grid.Row="2">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0">
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="服务器档案" />
+                        <TextBlock Margin="0,4,0,0"
+                                   Foreground="{DynamicResource VslMutedTextBrush}"
+                                   Text="一个档案对应一套 dataPath 和配置" />
+                    </StackPanel>
+
+                    <Border Grid.Row="1" Style="{DynamicResource VslActionBarHostStyle}">
+                        <WrapPanel>
+                            <TextBlock Text="新档案名" VerticalAlignment="Center" Margin="0,0,8,8" />
+                            <TextBox Width="210"
+                                     Margin="0,0,8,8"
+                                     Text="{Binding NewProfileName, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button Content="创建档案"
+                                    Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding CreateProfileCommand}" />
+                            <Button Content="刷新"
+                                    Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding RefreshProfilesCommand}" />
+                            <Button Content="删除选中"
+                                    Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding DeleteSelectedProfileCommand}" />
+                        </WrapPanel>
+                    </Border>
+
+                    <Grid Grid.Row="2">
+                        <ListView x:Name="ProfilesList"
+                                  Style="{StaticResource VslListViewStyle}"
+                                  ItemContainerStyle="{StaticResource VslListViewItemStyle}"
+                                  ItemsSource="{Binding Profiles}"
+                                  SelectedItem="{Binding SelectedProfile}">
+                            <ListView.Resources>
+                                <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource VslGridViewHeaderStyle}" />
+                                <Style TargetType="ListViewItem" BasedOn="{StaticResource VslListViewItemStyle}" />
+                            </ListView.Resources>
+                            <ListView.View>
+                                <GridView ColumnHeaderContainerStyle="{StaticResource VslGridViewHeaderStyle}">
+                                    <GridViewColumn Header="名称" Width="220" DisplayMemberBinding="{Binding Name}" />
+                                    <GridViewColumn Header="版本" Width="150" DisplayMemberBinding="{Binding Version}" />
+                                    <GridViewColumn Header="数据目录" Width="560" DisplayMemberBinding="{Binding DataPath}" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                        <TextBlock Text="还没有服务器档案，选择版本后点击“创建档案”。">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource VslEmptyHintStyle}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ElementName=ProfilesList, Path=HasItems}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Grid>
+            </ui:Card>
+        </Grid>
+    </Grid>
+</UserControl>
+
+
+
+

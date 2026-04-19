@@ -1,0 +1,51 @@
+<UserControl x:Class="VSL.UI.Views.Pages.AboutPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             mc:Ignorable="d"
+             d:DesignHeight="860"
+             d:DesignWidth="1180">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="2,0,0,12">
+            <TextBlock Style="{DynamicResource VslPageTitleStyle}" Text="关于" />
+            <TextBlock Style="{DynamicResource VslPageSubTitleStyle}" Text="项目信息与联系渠道" />
+        </StackPanel>
+
+        <ui:Card Grid.Row="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="0,0,0,14">
+                    <TextBlock FontSize="15" FontWeight="SemiBold" Text="作者" />
+                    <TextBlock Margin="0,6,0,0" Text="寒士杰克（HansJack）" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Margin="0,0,0,14">
+                    <TextBlock FontSize="15" FontWeight="SemiBold" Text="制作组" />
+                    <TextBlock Margin="0,6,0,0" Text="复古物语中文社区（vintagestory.top）" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="2">
+                    <TextBlock FontSize="15" FontWeight="SemiBold" Text="项目仓库" />
+                    <TextBlock Margin="0,6,0,0">
+                        <Hyperlink NavigateUri="https://github.com/VintageStory-Community/VSL"
+                                   RequestNavigate="RepositoryLink_OnRequestNavigate">
+                            https://github.com/VintageStory-Community/VSL
+                        </Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </ui:Card>
+    </Grid>
+</UserControl>

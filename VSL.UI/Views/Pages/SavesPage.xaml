@@ -1,0 +1,84 @@
+<UserControl x:Class="VSL.UI.Views.Pages.SavesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             mc:Ignorable="d"
+             d:DesignHeight="860"
+             d:DesignWidth="1180">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="2,0,0,12">
+            <TextBlock Style="{DynamicResource VslPageTitleStyle}" Text="存档管理" />
+            <TextBlock Style="{DynamicResource VslPageSubTitleStyle}"
+                       Text="创建、切换和备份当前服务器存档。"/>
+        </StackPanel>
+
+        <ui:Card Grid.Row="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{DynamicResource VslActionBarHostStyle}">
+                    <WrapPanel>
+                        <TextBlock Text="新存档名" VerticalAlignment="Center" Margin="0,0,8,8" />
+                        <TextBox Width="220"
+                                 Margin="0,0,8,8"
+                                 Text="{Binding NewSaveName, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Content="创建并切换"
+                                Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding CreateSaveCommand}" />
+                        <Button Content="刷新"
+                                Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding RefreshSavesCommand}" />
+                        <Button Content="设为当前"
+                                Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding SetActiveSaveCommand}" />
+                        <Button Content="备份当前"
+                                Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding BackupSaveCommand}" />
+                    </WrapPanel>
+                </Border>
+
+                <Grid Grid.Row="1">
+                    <ListView x:Name="SavesList"
+                              Style="{StaticResource VslListViewStyle}"
+                              ItemContainerStyle="{StaticResource VslListViewItemStyle}"
+                              ItemsSource="{Binding Saves}"
+                              SelectedItem="{Binding SelectedSave}">
+                        <ListView.Resources>
+                            <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource VslGridViewHeaderStyle}" />
+                            <Style TargetType="ListViewItem" BasedOn="{StaticResource VslListViewItemStyle}" />
+                        </ListView.Resources>
+                        <ListView.View>
+                            <GridView ColumnHeaderContainerStyle="{StaticResource VslGridViewHeaderStyle}">
+                                <GridViewColumn Header="文件名" Width="220" DisplayMemberBinding="{Binding FileName}" />
+                                <GridViewColumn Header="最后修改 (UTC)" Width="200" DisplayMemberBinding="{Binding LastWriteTimeUtc}" />
+                                <GridViewColumn Header="完整路径" Width="510" DisplayMemberBinding="{Binding FullPath}" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <TextBlock Text="暂无存档，先创建一个新存档。">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource VslEmptyHintStyle}">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ElementName=SavesList, Path=HasItems}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Grid>
+        </ui:Card>
+    </Grid>
+</UserControl>
+
+
+
+

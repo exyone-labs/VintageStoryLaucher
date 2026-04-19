@@ -1,0 +1,459 @@
+<Application x:Class="VSL.UI.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:converters="clr-namespace:VSL.UI.Converters">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemesDictionary Theme="Light" />
+                <ui:ControlsDictionary />
+            </ResourceDictionary.MergedDictionaries>
+
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:NavKeyToVisibilityConverter x:Key="NavKeyToVisibilityConverter" />
+
+            <SolidColorBrush x:Key="VslAppBackgroundBrush" Color="#F3F3F3" />
+            <SolidColorBrush x:Key="VslMutedTextBrush" Color="#707070" />
+            <SolidColorBrush x:Key="VslPanelBorderBrush" Color="#E0E0E0" />
+            <SolidColorBrush x:Key="VslPanelBackgroundBrush" Color="#F2FFFFFF" />
+            <SolidColorBrush x:Key="VslTableHeaderBrush" Color="#F5F5F5" />
+            <SolidColorBrush x:Key="VslTableRowHoverBrush" Color="#F5F5F5" />
+            <SolidColorBrush x:Key="VslTableRowSelectedBrush" Color="#E5E5E5" />
+            <SolidColorBrush x:Key="VslActionBarBrush" Color="#FAFAFA" />
+            <SolidColorBrush x:Key="VslCodePaneBrush" Color="#1A1A1A" />
+            <SolidColorBrush x:Key="VslHeaderBrush" Color="#FAFAFA" />
+            <SolidColorBrush x:Key="LeftNavigationViewSeparatorBrush" Color="#00FFFFFF" />
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="#00FFFFFF" />
+            <SolidColorBrush x:Key="VslLogoGreenBrush" Color="#6B8E23" />
+            <SolidColorBrush x:Key="VslLogoBrownBrush" Color="#8B5A2B" />
+            <SolidColorBrush x:Key="VslLogoGrayBrush" Color="#555555" />
+            <SolidColorBrush x:Key="VslIconStrokeBrush" Color="#424242" />
+            <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
+            <CornerRadius x:Key="PopupCornerRadius">4</CornerRadius>
+            <Pen x:Key="VslIconStrokePen"
+                 Brush="{DynamicResource VslIconStrokeBrush}"
+                 Thickness="1.9"
+                 StartLineCap="Round"
+                 EndLineCap="Round"
+                 LineJoin="Round" />
+            <DrawingImage x:Key="VslAppLogoImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="{StaticResource VslLogoGreenBrush}" Geometry="M100,245 H300 A12,12 0 0 1 312,257 V421 A12,12 0 0 1 300,433 H100 A12,12 0 0 1 88,421 V257 A12,12 0 0 1 100,245 Z" />
+                        <GeometryDrawing Brush="{StaticResource VslLogoBrownBrush}" Geometry="M500,245 H700 A12,12 0 0 1 712,257 V421 A12,12 0 0 1 700,433 H500 A12,12 0 0 1 488,421 V257 A12,12 0 0 1 500,245 Z" />
+                        <GeometryDrawing Brush="{StaticResource VslLogoGrayBrush}" Geometry="M300,433 H500 A12,12 0 0 1 512,445 V621 A12,12 0 0 1 500,633 H300 A12,12 0 0 1 288,621 V445 A12,12 0 0 1 300,433 Z" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+            <Style x:Key="VslNavImageIconStyle" TargetType="ui:ImageIcon">
+                <Setter Property="Width" Value="15" />
+                <Setter Property="Height" Value="15" />
+            </Style>
+            <DrawingImage x:Key="LucideNavVersionImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="m7 16.5-4.74-2.85" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="m7 16.5 5-3" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M7 16.5v5.17" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="m17 16.5-5-3" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="m17 16.5 4.74-2.85" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M17 16.5v5.17" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 8 7.26 5.15" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="m12 8 4.74-2.85" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 13.5V8" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+            <DrawingImage x:Key="LucideNavSettingsImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 9 A 3 3 0 1 1 12 15 A 3 3 0 1 1 12 9 Z" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+            <DrawingImage x:Key="LucideNavJsonImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M14 2v5a1 1 0 0 0 1 1h5" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M10 12a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1 1 1 0 0 1 1 1v1a1 1 0 0 0 1 1" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M14 18a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1 1 1 0 0 1-1-1v-1a1 1 0 0 0-1-1" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+            <DrawingImage x:Key="LucideNavSaveImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M7 3v4a1 1 0 0 0 1 1h7" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+            <DrawingImage x:Key="LucideNavModsImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+            <DrawingImage x:Key="LucideNavConsoleImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 19h8" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M4 17l6-6-6-6" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+            <DrawingImage x:Key="LucideNavAboutImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 22 A 10 10 0 1 1 12 2 A 10 10 0 1 1 12 22 Z" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 10v6" />
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 7h.01" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+            <DrawingImage x:Key="LucidePlayImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+            <DrawingImage x:Key="LucideStopImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+
+            <Style x:Key="VslGlassPanelStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="14" />
+                <Setter Property="Background" Value="{DynamicResource VslPanelBackgroundBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource VslPanelBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+            </Style>
+
+            <Style x:Key="VslActionBarHostStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="10,8,6,2" />
+                <Setter Property="Margin" Value="0,0,0,8" />
+                <Setter Property="Background" Value="{DynamicResource VslActionBarBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource VslPanelBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+
+            <Style x:Key="VslPageTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="VslPageSubTitleStyle" TargetType="TextBlock">
+                <Setter Property="Margin" Value="0,4,0,0" />
+                <Setter Property="Foreground" Value="{DynamicResource VslMutedTextBrush}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+
+            <Style x:Key="VslEmptyHintStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="Foreground" Value="{DynamicResource VslMutedTextBrush}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="TextAlignment" Value="Center" />
+                <Setter Property="Margin" Value="12" />
+            </Style>
+
+            <Style TargetType="ui:Card">
+                <Setter Property="Margin" Value="0,0,0,12" />
+                <Setter Property="Padding" Value="14" />
+                <Setter Property="Background" Value="{DynamicResource VslPanelBackgroundBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource VslPanelBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+
+            <Style x:Key="VslButtonBaseStyle" TargetType="Button">
+                <Setter Property="BorderBrush" Value="#D0D0D0" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="12,4" />
+                <Setter Property="Background" Value="#FFFFFF" />
+                <Setter Property="Foreground" Value="#1A1A1A" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="ButtonBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="4"
+                                    SnapsToDevicePixels="True">
+                                <ContentPresenter Margin="{TemplateBinding Padding}"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  RecognizesAccessKey="True" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ButtonBorder" Property="Background" Value="#F0F0F0" />
+                                    <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#C0C0C0" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="ButtonBorder" Property="Background" Value="#E0E0E0" />
+                                    <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#A0A0A0" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.5" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="VslUiButtonStyle" TargetType="ui:Button" BasedOn="{StaticResource VslButtonBaseStyle}">
+                <Setter Property="Margin" Value="0,0,8,8" />
+            </Style>
+
+            <Style x:Key="QuickActionButtonStyle" TargetType="Button" BasedOn="{StaticResource VslButtonBaseStyle}">
+                <Setter Property="Height" Value="32" />
+                <Setter Property="Margin" Value="0,0,0,8" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+            </Style>
+
+            <Style x:Key="VslToolbarButtonStyle" TargetType="Button" BasedOn="{StaticResource VslButtonBaseStyle}">
+                <Setter Property="Height" Value="32" />
+                <Setter Property="MinWidth" Value="80" />
+                <Setter Property="Margin" Value="0,0,8,8" />
+                <Setter Property="Padding" Value="12,0" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+
+            <Style x:Key="VslTitleBarActionButtonStyle" TargetType="Button" BasedOn="{StaticResource VslButtonBaseStyle}">
+                <Setter Property="Height" Value="32" />
+                <Setter Property="MinWidth" Value="96" />
+                <Setter Property="Margin" Value="0,0,8,0" />
+                <Setter Property="Padding" Value="12,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+
+            <Style x:Key="VslWindowControlButtonStyle" TargetType="Button">
+                <Setter Property="Width" Value="34" />
+                <Setter Property="Height" Value="30" />
+                <Setter Property="Margin" Value="4,0,0,0" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Background" Value="#00FFFFFF" />
+                <Setter Property="Foreground" Value="#2A2A2A" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+                <Setter Property="FontSize" Value="10" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="WindowControlBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="4"
+                                    SnapsToDevicePixels="True">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  RecognizesAccessKey="True" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="WindowControlBorder" Property="Background" Value="#22000000" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="WindowControlBorder" Property="Background" Value="#33000000" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="WindowControlBorder" Property="Opacity" Value="0.45" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style TargetType="{x:Type ui:Button}" BasedOn="{StaticResource DefaultUiButtonStyle}">
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="MouseOverBackground" Value="#22000000" />
+                <Setter Property="MouseOverBorderBrush" Value="Transparent" />
+                <Setter Property="PressedBackground" Value="#33000000" />
+                <Setter Property="PressedBorderBrush" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+
+            <Style x:Key="VslListViewStyle" TargetType="ListView">
+                <Setter Property="Background" Value="#FFFFFFFF" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Foreground" Value="#1A1A1A" />
+                <Setter Property="AlternationCount" Value="2" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+                <Setter Property="Margin" Value="0,2,0,0" />
+            </Style>
+
+            <Style x:Key="VslGridViewHeaderStyle" TargetType="GridViewColumnHeader">
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Padding" Value="10,7" />
+                <Setter Property="Background" Value="#F5F5F5" />
+                <Setter Property="Foreground" Value="#1A1A1A" />
+                <Setter Property="BorderBrush" Value="#E0E0E0" />
+                <Setter Property="BorderThickness" Value="0,0,1,1" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="GridViewColumnHeader">
+                            <Border x:Name="HeaderBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}"
+                                    SnapsToDevicePixels="True">
+                                <ContentPresenter HorizontalAlignment="Left"
+                                                  VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="Role" Value="Padding">
+                                    <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="0" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="HeaderBorder" Property="Background" Value="#EBEBEB" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="VslListViewItemStyle" TargetType="ListViewItem">
+                <Setter Property="Padding" Value="8,5" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="BorderBrush" Value="#EBEBEB" />
+                <Setter Property="BorderThickness" Value="0,0,0,1" />
+                <Setter Property="Background" Value="#FFFFFFFF" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListViewItem">
+                            <Border x:Name="RowBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}"
+                                    SnapsToDevicePixels="True">
+                                <GridViewRowPresenter Columns="{Binding Path=View.Columns, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                      Content="{TemplateBinding Content}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter TargetName="RowBorder" Property="Background" Value="#FAFAFA" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="RowBorder" Property="Background" Value="{DynamicResource VslTableRowHoverBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="RowBorder" Property="Background" Value="{DynamicResource VslTableRowSelectedBrush}" />
+                                    <Setter TargetName="RowBorder" Property="BorderBrush" Value="#C8C8C8" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                        <Setter Property="Foreground" Value="#1A1A1A" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="VslConsoleListBoxStyle" TargetType="ListBox">
+                <Setter Property="Background" Value="{DynamicResource VslCodePaneBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource VslPanelBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+
+            <Style x:Key="VslConsoleListBoxItemStyle" TargetType="ListBoxItem">
+                <Setter Property="Padding" Value="6,2" />
+                <Setter Property="Foreground" Value="#D4D4D4" />
+            </Style>
+
+            <Style x:Key="VslTextBoxStyle"
+                   TargetType="TextBox"
+                   BasedOn="{StaticResource {x:Type TextBox}}">
+                <Setter Property="MinHeight" Value="32" />
+                <Setter Property="Background" Value="#FFFFFF" />
+                <Setter Property="Foreground" Value="#1A1A1A" />
+                <Setter Property="BorderBrush" Value="#D0D0D0" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="10,0" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border x:Name="TextBoxBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="4"
+                                    SnapsToDevicePixels="True">
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              Margin="{TemplateBinding Padding}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="TextBoxBorder" Property="BorderBrush" Value="#7A9FD0" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="TextBoxBorder" Property="Opacity" Value="0.6" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="AcceptsReturn" Value="True">
+                        <Setter Property="VerticalContentAlignment" Value="Top" />
+                        <Setter Property="Padding" Value="10,6" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style TargetType="TextBox" BasedOn="{StaticResource VslTextBoxStyle}" />
+
+            <Style x:Key="VslComboBoxStyle"
+                   TargetType="ComboBox"
+                   BasedOn="{StaticResource DefaultComboBoxStyle}">
+                <Setter Property="MinHeight" Value="32" />
+                <Setter Property="Padding" Value="10,0" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
+            <Style TargetType="ComboBox" BasedOn="{StaticResource VslComboBoxStyle}" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

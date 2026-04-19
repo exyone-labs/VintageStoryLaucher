@@ -1,0 +1,27 @@
+# Build artifacts
+bin/
+obj/
+dist/
+artifacts/
+
+# Test and temporary outputs
+TestResults/
+*.trx
+*.tmp
+*.log
+tmpsnackbar/
+tmp_*/
+
+# IDE / editor
+.vs/
+.vscode/
+*.user
+*.suo
+*.cache
+
+# Runtime workspace data
+workspace/
+
+# OS files
+Thumbs.db
+Desktop.ini
