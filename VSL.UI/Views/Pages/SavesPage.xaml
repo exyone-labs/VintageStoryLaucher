@@ -55,9 +55,31 @@
                         </ListView.Resources>
                         <ListView.View>
                             <GridView ColumnHeaderContainerStyle="{StaticResource VslGridViewHeaderStyle}">
-                                <GridViewColumn Header="文件名" Width="220" DisplayMemberBinding="{Binding FileName}" />
-                                <GridViewColumn Header="最后修改 (UTC)" Width="200" DisplayMemberBinding="{Binding LastWriteTimeUtc}" />
-                                <GridViewColumn Header="完整路径" Width="510" DisplayMemberBinding="{Binding FullPath}" />
+                                <GridViewColumn Header="文件名" Width="200">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                       Text="{Binding FileName}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="最后修改 (UTC)" Width="180">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                       Text="{Binding LastWriteTimeUtc}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="完整路径" Width="620">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                       Text="{Binding FullPath}"
+                                                       ToolTip="{Binding FullPath}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
                             </GridView>
                         </ListView.View>
                     </ListView>

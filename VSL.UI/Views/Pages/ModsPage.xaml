@@ -49,12 +49,56 @@
                         </ListView.Resources>
                         <ListView.View>
                             <GridView ColumnHeaderContainerStyle="{StaticResource VslGridViewHeaderStyle}">
-                                <GridViewColumn Header="ModId" Width="180" DisplayMemberBinding="{Binding ModId}" />
-                                <GridViewColumn Header="版本" Width="80" DisplayMemberBinding="{Binding Version}" />
-                                <GridViewColumn Header="禁用" Width="60" DisplayMemberBinding="{Binding IsDisabled}" />
-                                <GridViewColumn Header="状态" Width="110" DisplayMemberBinding="{Binding Status}" />
-                                <GridViewColumn Header="依赖" Width="250" DisplayMemberBinding="{Binding DependenciesText}" />
-                                <GridViewColumn Header="依赖问题" Width="250" DisplayMemberBinding="{Binding IssuesText}" />
+                                <GridViewColumn Header="ModId" Width="200">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                       Text="{Binding ModId}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="版本" Width="100">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                       Text="{Binding Version}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="禁用" Width="60">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                       Text="{Binding IsDisabled}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="状态" Width="120">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                       Text="{Binding Status}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="依赖" Width="260">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                       Text="{Binding DependenciesText}"
+                                                       ToolTip="{Binding DependenciesText}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="依赖问题" Width="260">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                       Text="{Binding IssuesText}"
+                                                       ToolTip="{Binding IssuesText}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
                             </GridView>
                         </ListView.View>
                     </ListView>

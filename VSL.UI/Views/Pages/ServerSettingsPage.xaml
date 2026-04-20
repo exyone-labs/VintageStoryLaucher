@@ -46,22 +46,22 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="服务器名称" />
-                        <TextBox Grid.Row="0" Grid.Column="0" Margin="0,22,16,8" Height="34" Text="{Binding ServerName}" />
+                        <TextBox Grid.Row="0" Grid.Column="0" Margin="0,22,16,8" Height="32" Text="{Binding ServerName}" />
 
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="IP (可空)" />
-                        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,22,16,8" Height="34" Text="{Binding Ip}" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,22,16,8" Height="32" Text="{Binding Ip}" />
 
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="端口" />
-                        <TextBox Grid.Row="0" Grid.Column="2" Margin="0,22,0,8" Height="34" Text="{Binding Port}" />
+                        <TextBox Grid.Row="0" Grid.Column="2" Margin="0,22,0,8" Height="32" Text="{Binding Port}" />
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="最大玩家数" />
-                        <TextBox Grid.Row="1" Grid.Column="0" Margin="0,22,16,8" Height="34" Text="{Binding MaxClients}" />
+                        <TextBox Grid.Row="1" Grid.Column="0" Margin="0,22,16,8" Height="32" Text="{Binding MaxClients}" />
 
                         <TextBlock Grid.Row="1" Grid.Column="1" Text="密码 (可空)" />
-                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,22,16,8" Height="34" Text="{Binding Password}" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,22,16,8" Height="32" Text="{Binding Password}" />
 
                         <TextBlock Grid.Row="1" Grid.Column="2" Text="白名单模式 (0/1/2)" />
-                        <TextBox Grid.Row="1" Grid.Column="2" Margin="0,22,0,8" Height="34" Text="{Binding WhitelistMode}" />
+                        <TextBox Grid.Row="1" Grid.Column="2" Margin="0,22,0,8" Height="32" Text="{Binding WhitelistMode}" />
 
                         <CheckBox Grid.Row="2" Grid.Column="0" Content="公开服务器 (AdvertiseServer)" IsChecked="{Binding AdvertiseServer}" Margin="0,8,0,8" />
                         <CheckBox Grid.Row="2" Grid.Column="1" Content="允许PVP" IsChecked="{Binding AllowPvP}" Margin="0,8,0,8" />
@@ -84,22 +84,22 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="世界种子" />
-                        <TextBox Grid.Row="0" Grid.Column="0" Margin="0,22,16,8" Height="34" Text="{Binding Seed}" />
+                        <TextBox Grid.Row="0" Grid.Column="0" Margin="0,22,16,8" Height="32" Text="{Binding Seed}" />
 
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="世界名称" />
-                        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,22,16,8" Height="34" Text="{Binding WorldName}" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,22,16,8" Height="32" Text="{Binding WorldName}" />
 
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="世界高度" />
-                        <TextBox Grid.Row="0" Grid.Column="2" Margin="0,22,0,8" Height="34" Text="{Binding WorldHeight}" />
+                        <TextBox Grid.Row="0" Grid.Column="2" Margin="0,22,0,8" Height="32" Text="{Binding WorldHeight}" />
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="玩法代码" />
-                        <TextBox Grid.Row="1" Grid.Column="0" Margin="0,22,16,8" Height="34" Text="{Binding PlayStyle}" />
+                        <TextBox Grid.Row="1" Grid.Column="0" Margin="0,22,16,8" Height="32" Text="{Binding PlayStyle}" />
 
                         <TextBlock Grid.Row="1" Grid.Column="1" Text="世界类型" />
-                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,22,16,8" Height="34" Text="{Binding WorldType}" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,22,16,8" Height="32" Text="{Binding WorldType}" />
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="当前存档路径" />
-                        <TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,22,0,0" Height="34" Text="{Binding SaveFileLocation}" />
+                        <TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,22,0,0" Height="32" Text="{Binding SaveFileLocation}" />
                     </Grid>
                 </ui:Card>
 

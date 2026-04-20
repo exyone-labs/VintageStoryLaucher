@@ -108,9 +108,31 @@
                             </ListView.Resources>
                             <ListView.View>
                                 <GridView ColumnHeaderContainerStyle="{StaticResource VslGridViewHeaderStyle}">
-                                    <GridViewColumn Header="名称" Width="220" DisplayMemberBinding="{Binding Name}" />
-                                    <GridViewColumn Header="版本" Width="150" DisplayMemberBinding="{Binding Version}" />
-                                    <GridViewColumn Header="数据目录" Width="560" DisplayMemberBinding="{Binding DataPath}" />
+                                    <GridViewColumn Header="名称" Width="200">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                           Text="{Binding Name}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="版本" Width="120">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                           Text="{Binding Version}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="数据目录" Width="680">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                           Text="{Binding DataPath}"
+                                                           ToolTip="{Binding DataPath}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
                                 </GridView>
                             </ListView.View>
                         </ListView>

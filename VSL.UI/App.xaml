@@ -302,6 +302,67 @@
                 <Setter Property="BorderThickness" Value="0" />
             </Style>
 
+            <Style x:Key="{x:Static GridView.GridViewScrollViewerStyleKey}" TargetType="ScrollViewer">
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ScrollViewer">
+                            <Grid Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.ColumnSpan="2" Grid.RowSpan="2"
+                                           Margin="{TemplateBinding Padding}">
+                                    <ScrollViewer DockPanel.Dock="Top"
+                                                  Focusable="False"
+                                                  HorizontalScrollBarVisibility="Hidden"
+                                                  VerticalScrollBarVisibility="Hidden">
+                                        <GridViewHeaderRowPresenter
+                                            Margin="0"
+                                            Columns="{Binding Path=TemplatedParent.View.Columns, RelativeSource={RelativeSource TemplatedParent}}"
+                                            ColumnHeaderContainerStyle="{Binding Path=TemplatedParent.View.ColumnHeaderContainerStyle, RelativeSource={RelativeSource TemplatedParent}}"
+                                            ColumnHeaderTemplate="{Binding Path=TemplatedParent.View.ColumnHeaderTemplate, RelativeSource={RelativeSource TemplatedParent}}"
+                                            ColumnHeaderTemplateSelector="{Binding Path=TemplatedParent.View.ColumnHeaderTemplateSelector, RelativeSource={RelativeSource TemplatedParent}}"
+                                            AllowsColumnReorder="{Binding Path=TemplatedParent.View.AllowsColumnReorder, RelativeSource={RelativeSource TemplatedParent}}"
+                                            ColumnHeaderContextMenu="{Binding Path=TemplatedParent.View.ColumnHeaderContextMenu, RelativeSource={RelativeSource TemplatedParent}}"
+                                            ColumnHeaderToolTip="{Binding Path=TemplatedParent.View.ColumnHeaderToolTip, RelativeSource={RelativeSource TemplatedParent}}"
+                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                    </ScrollViewer>
+                                    <ScrollContentPresenter
+                                        x:Name="PART_ScrollContentPresenter"
+                                        CanContentScroll="{TemplateBinding ScrollViewer.CanContentScroll}"
+                                        Content="{TemplateBinding Content}"
+                                        ContentTemplate="{TemplateBinding ContentTemplate}"
+                                        KeyboardNavigation.DirectionalNavigation="Local"
+                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                </DockPanel>
+                                <ScrollBar x:Name="PART_VerticalScrollBar"
+                                           Grid.Column="1"
+                                           Maximum="{TemplateBinding ScrollableHeight}"
+                                           Minimum="0"
+                                           Orientation="Vertical"
+                                           ViewportSize="{TemplateBinding ViewportHeight}"
+                                           Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                           Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ScrollBar x:Name="PART_HorizontalScrollBar"
+                                           Grid.Row="1"
+                                           Maximum="{TemplateBinding ScrollableWidth}"
+                                           Minimum="0"
+                                           Orientation="Horizontal"
+                                           ViewportSize="{TemplateBinding ViewportWidth}"
+                                           Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
+                                           Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <Style x:Key="VslListViewStyle" TargetType="ListView">
                 <Setter Property="Background" Value="#FFFFFFFF" />
                 <Setter Property="BorderBrush" Value="Transparent" />
@@ -312,16 +373,23 @@
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
                 <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+                <Setter Property="ScrollViewer.CanContentScroll" Value="True" />
+                <Setter Property="ClipToBounds" Value="True" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="UseLayoutRounding" Value="True" />
                 <Setter Property="Margin" Value="0,2,0,0" />
             </Style>
 
             <Style x:Key="VslGridViewHeaderStyle" TargetType="GridViewColumnHeader">
+                <Setter Property="Height" Value="36" />
                 <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="Padding" Value="10,7" />
+                <Setter Property="Padding" Value="8,0" />
                 <Setter Property="Background" Value="#F5F5F5" />
                 <Setter Property="Foreground" Value="#1A1A1A" />
-                <Setter Property="BorderBrush" Value="#E0E0E0" />
-                <Setter Property="BorderThickness" Value="0,0,1,1" />
+                <Setter Property="BorderBrush" Value="#E3E3E3" />
+                <Setter Property="BorderThickness" Value="0,0,0,1" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="GridViewColumnHeader">
@@ -331,8 +399,8 @@
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     Padding="{TemplateBinding Padding}"
                                     SnapsToDevicePixels="True">
-                                <ContentPresenter HorizontalAlignment="Left"
-                                                  VerticalAlignment="Center"
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                                   RecognizesAccessKey="True" />
                             </Border>
                             <ControlTemplate.Triggers>
@@ -340,7 +408,7 @@
                                     <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="0" />
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="HeaderBorder" Property="Background" Value="#EBEBEB" />
+                                    <Setter TargetName="HeaderBorder" Property="Background" Value="#EEEEEE" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -349,7 +417,8 @@
             </Style>
 
             <Style x:Key="VslListViewItemStyle" TargetType="ListViewItem">
-                <Setter Property="Padding" Value="8,5" />
+                <Setter Property="MinHeight" Value="36" />
+                <Setter Property="Padding" Value="0" />
                 <Setter Property="Margin" Value="0" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -364,8 +433,11 @@
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     Padding="{TemplateBinding Padding}"
+                                    ClipToBounds="True"
                                     SnapsToDevicePixels="True">
                                 <GridViewRowPresenter Columns="{Binding Path=View.Columns, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                      HorizontalAlignment="Stretch"
+                                                      VerticalAlignment="Center"
                                                       Content="{TemplateBinding Content}" />
                             </Border>
                             <ControlTemplate.Triggers>
@@ -377,7 +449,7 @@
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
                                     <Setter TargetName="RowBorder" Property="Background" Value="{DynamicResource VslTableRowSelectedBrush}" />
-                                    <Setter TargetName="RowBorder" Property="BorderBrush" Value="#C8C8C8" />
+                                    <Setter TargetName="RowBorder" Property="BorderBrush" Value="#EBEBEB" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -388,6 +460,12 @@
                         <Setter Property="Foreground" Value="#1A1A1A" />
                     </Trigger>
                 </Style.Triggers>
+            </Style>
+
+            <Style x:Key="VslTableCellTextStyle" TargetType="TextBlock">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Margin" Value="8,0" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
             </Style>
 
             <Style x:Key="VslConsoleListBoxStyle" TargetType="ListBox">
