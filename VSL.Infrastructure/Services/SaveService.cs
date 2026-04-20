@@ -7,7 +7,7 @@ public sealed class SaveService(IServerConfigService serverConfigService) : ISav
 {
     public Task<IReadOnlyList<SaveFileEntry>> GetSavesAsync(ServerProfile profile, CancellationToken cancellationToken = default)
     {
-        var savesPath = WorkspaceLayout.GetSavesPath(profile.DataPath);
+        var savesPath = ResolveSavesPath(profile);
         Directory.CreateDirectory(savesPath);
 
         IReadOnlyList<SaveFileEntry> result = Directory
@@ -37,7 +37,7 @@ public sealed class SaveService(IServerConfigService serverConfigService) : ISav
                 return OperationResult<string>.Failed("存档名称不能为空。");
             }
 
-            var savesPath = WorkspaceLayout.GetSavesPath(profile.DataPath);
+            var savesPath = ResolveSavesPath(profile);
             Directory.CreateDirectory(savesPath);
 
             var fileName = WorkspaceLayout.SanitizeFileName(saveName.Trim()) + ".vcdbs";
@@ -48,6 +48,7 @@ public sealed class SaveService(IServerConfigService serverConfigService) : ISav
                 await using var _ = File.Create(fullPath);
             }
 
+            profile.SaveDirectory = savesPath;
             var setResult = await SetActiveSaveAsync(profile, fullPath, cancellationToken);
             if (!setResult.IsSuccess)
             {
@@ -99,6 +100,13 @@ public sealed class SaveService(IServerConfigService serverConfigService) : ISav
                 return saveResult;
             }
 
+            var saveDirectory = Path.GetDirectoryName(saveFilePath);
+            if (!string.IsNullOrWhiteSpace(saveDirectory))
+            {
+                Directory.CreateDirectory(saveDirectory);
+                profile.SaveDirectory = saveDirectory;
+            }
+
             profile.ActiveSaveFile = saveFilePath;
             profile.LastUpdatedUtc = DateTimeOffset.UtcNow;
             return OperationResult.Success("已切换当前存档。");
@@ -139,5 +147,21 @@ public sealed class SaveService(IServerConfigService serverConfigService) : ISav
         {
             return OperationResult<string>.Failed("备份存档失败。", ex);
         }
+    }
+
+    private static string ResolveSavesPath(ServerProfile profile)
+    {
+        if (!string.IsNullOrWhiteSpace(profile.SaveDirectory))
+        {
+            return profile.SaveDirectory;
+        }
+
+        var activeSaveDirectory = Path.GetDirectoryName(profile.ActiveSaveFile);
+        if (!string.IsNullOrWhiteSpace(activeSaveDirectory))
+        {
+            return activeSaveDirectory;
+        }
+
+        return WorkspaceLayout.GetProfileSavesPath(profile.Id);
     }
 }

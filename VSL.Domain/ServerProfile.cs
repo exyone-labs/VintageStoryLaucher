@@ -12,6 +12,8 @@ public sealed class ServerProfile
 
     public required string ActiveSaveFile { get; set; }
 
+    public string? SaveDirectory { get; set; }
+
     public string Language { get; set; } = "zh-CN";
 
     public DateTimeOffset CreatedAtUtc { get; init; } = DateTimeOffset.UtcNow;

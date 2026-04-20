@@ -1,0 +1,107 @@
+<UserControl x:Class="VSL.UI.Views.Pages.AppSettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             mc:Ignorable="d"
+             d:DesignHeight="860"
+             d:DesignWidth="1180">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="2,0,0,12">
+            <TextBlock Style="{DynamicResource VslPageTitleStyle}" Text="设置" />
+            <TextBlock Style="{DynamicResource VslPageSubTitleStyle}" Text="配置默认数据目录、默认存档目录和开机自启动。" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <ui:Card>
+                    <StackPanel>
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="启动器设置" />
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       Margin="0,8,8,0"
+                                       VerticalAlignment="Center"
+                                       Text="数据目录" />
+                            <TextBox Grid.Row="0"
+                                     Grid.Column="1"
+                                     Height="32"
+                                     Margin="0,0,0,8"
+                                     Text="{Binding LauncherDataDirectory, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button Grid.Row="0"
+                                    Grid.Column="2"
+                                    Height="32"
+                                    Margin="8,0,0,8"
+                                    Padding="10,0"
+                                    Content="选择目录"
+                                    Style="{StaticResource VslToolbarButtonStyle}"
+                                    Command="{Binding ChooseLauncherDataDirectoryCommand}" />
+
+                            <TextBlock Grid.Row="1"
+                                       Grid.Column="0"
+                                       Margin="0,8,8,0"
+                                       VerticalAlignment="Center"
+                                       Text="存档目录" />
+                            <TextBox Grid.Row="1"
+                                     Grid.Column="1"
+                                     Height="32"
+                                     Margin="0,0,0,8"
+                                     Text="{Binding LauncherSaveDirectory, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button Grid.Row="1"
+                                    Grid.Column="2"
+                                    Height="32"
+                                    Margin="8,0,0,8"
+                                    Padding="10,0"
+                                    Content="选择目录"
+                                    Style="{StaticResource VslToolbarButtonStyle}"
+                                    Command="{Binding ChooseLauncherSaveDirectoryCommand}" />
+
+                            <CheckBox Grid.Row="2"
+                                      Grid.Column="1"
+                                      Grid.ColumnSpan="2"
+                                      Margin="0,8,0,0"
+                                      Content="开机自启动"
+                                      IsChecked="{Binding LaunchAtStartup}" />
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                            <Button Content="保存设置"
+                                    Width="120"
+                                    Style="{StaticResource VslToolbarButtonStyle}"
+                                    Command="{Binding SaveLauncherSettingsCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ui:Card>
+
+                <ui:Card>
+                    <StackPanel>
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="说明" />
+                        <TextBlock Margin="0,10,0,0" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource VslMutedTextBrush}"
+                                   Text="1. 这里的目录用于“新建档案”的默认路径，不会自动迁移已有档案文件。" />
+                        <TextBlock Margin="0,6,0,0" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource VslMutedTextBrush}"
+                                   Text="2. 数据目录用于 serverconfig 与 Mod/日志等数据；存档目录用于 .vcdbs 存档文件。" />
+                    </StackPanel>
+                </ui:Card>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

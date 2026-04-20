@@ -134,6 +134,11 @@
                                 <ui:ImageIcon Style="{StaticResource VslNavImageIconStyle}" Source="{DynamicResource LucideNavConsoleImage}" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
+                        <ui:NavigationViewItem x:Name="NavAppSettings" Content="设置" Tag="appsettings" Click="NavigationItem_OnClick">
+                            <ui:NavigationViewItem.Icon>
+                                <ui:ImageIcon Style="{StaticResource VslNavImageIconStyle}" Source="{DynamicResource LucideNavSettingsImage}" />
+                            </ui:NavigationViewItem.Icon>
+                        </ui:NavigationViewItem>
                         <ui:NavigationViewItem x:Name="NavAbout" Content="关于" Tag="about" Click="NavigationItem_OnClick">
                             <ui:NavigationViewItem.Icon>
                                 <ui:ImageIcon Style="{StaticResource VslNavImageIconStyle}" Source="{DynamicResource LucideNavAboutImage}" />
@@ -153,6 +158,7 @@
                     <pages:SavesPage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=saves}" />
                     <pages:ModsPage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=mods}" />
                     <pages:ConsolePage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=console}" />
+                    <pages:AppSettingsPage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=appsettings}" />
                     <pages:AboutPage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=about}" />
                 </Grid>
             </Border>

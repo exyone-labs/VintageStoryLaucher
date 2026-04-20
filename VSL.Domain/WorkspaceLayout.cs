@@ -4,13 +4,25 @@ namespace VSL.Domain;
 
 public static partial class WorkspaceLayout
 {
-    public const string PreferredWorkspaceRoot = @"E:\vintagestory\VSL\workspace";
+    private static readonly object StorageSettingsGate = new();
+    private static string? _dataRootOverride;
+    private static string? _savesRootOverride;
 
     public static string WorkspaceRoot { get; } = ResolveWorkspaceRoot();
+
+    public static string DefaultDataRoot => Path.Combine(WorkspaceRoot, "data");
+
+    public static string DefaultSavesRoot => Path.Combine(WorkspaceRoot, "saves");
+
+    public static string DataRoot => ResolveConfiguredRoot(_dataRootOverride, DefaultDataRoot);
+
+    public static string SavesRoot => ResolveConfiguredRoot(_savesRootOverride, DefaultSavesRoot);
 
     public static string VersionsCachePath => Path.Combine(WorkspaceRoot, "versions-cache.json");
 
     public static string ProfilesPath => Path.Combine(WorkspaceRoot, "profiles.json");
+
+    public static string LauncherSettingsPath => Path.Combine(WorkspaceRoot, "launcher-settings.json");
 
     public static string TempPath => Path.Combine(WorkspaceRoot, ".tmp");
 
@@ -24,7 +36,9 @@ public static partial class WorkspaceLayout
 
     public static string GetProfileRoot(string profileId) => Path.Combine(ProfilesRoot, profileId);
 
-    public static string GetProfileDataPath(string profileId) => Path.Combine(GetProfileRoot(profileId), "data");
+    public static string GetProfileDataPath(string profileId) => Path.Combine(DataRoot, profileId);
+
+    public static string GetProfileSavesPath(string profileId) => Path.Combine(SavesRoot, profileId);
 
     public static string GetServerConfigPath(string dataPath) => Path.Combine(dataPath, "serverconfig.json");
 
@@ -36,7 +50,22 @@ public static partial class WorkspaceLayout
 
     public static string GetServerMainLogPath(string dataPath) => Path.Combine(GetLogsPath(dataPath), "server-main.log");
 
+    public static string GetDefaultSaveFile(ServerProfile profile) => GetProfileDefaultSaveFile(profile.Id);
+
+    public static string GetProfileDefaultSaveFile(string profileId) => Path.Combine(GetProfileSavesPath(profileId), "default.vcdbs");
+
     public static string GetDefaultSaveFile(string dataPath) => Path.Combine(GetSavesPath(dataPath), "default.vcdbs");
+
+    public static void ApplyStorageSettings(string? dataRoot, string? savesRoot)
+    {
+        lock (StorageSettingsGate)
+        {
+            _dataRootOverride = NormalizeDirectoryOrNull(dataRoot);
+            _savesRootOverride = NormalizeDirectoryOrNull(savesRoot);
+        }
+
+        EnsureStorageRootsExist();
+    }
 
     public static void EnsureWorkspaceExists()
     {
@@ -45,6 +74,7 @@ public static partial class WorkspaceLayout
         Directory.CreateDirectory(PackagesPath);
         Directory.CreateDirectory(ServersRoot);
         Directory.CreateDirectory(ProfilesRoot);
+        EnsureStorageRootsExist();
     }
 
     public static string SanitizeFileName(string name)
@@ -65,7 +95,6 @@ public static partial class WorkspaceLayout
     {
         var candidateRoots = new[]
         {
-            PreferredWorkspaceRoot,
             Path.Combine(AppContext.BaseDirectory, "workspace"),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VSL", "workspace")
         };
@@ -85,6 +114,35 @@ public static partial class WorkspaceLayout
 
         // Last resort.
         return Path.Combine(Path.GetTempPath(), "VSL", "workspace");
+    }
+
+    private static void EnsureStorageRootsExist()
+    {
+        Directory.CreateDirectory(DataRoot);
+        Directory.CreateDirectory(SavesRoot);
+    }
+
+    private static string ResolveConfiguredRoot(string? configuredRoot, string fallbackRoot)
+    {
+        var normalized = NormalizeDirectoryOrNull(configuredRoot);
+        return string.IsNullOrWhiteSpace(normalized) ? fallbackRoot : normalized;
+    }
+
+    private static string? NormalizeDirectoryOrNull(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            return Path.GetFullPath(path.Trim());
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     [GeneratedRegex(@"vs_server_win-x64_(?<version>[^\.]+\.\d+\.\d+(?:-[^\.]+(?:\.\d+)?)?)\.zip", RegexOptions.IgnoreCase)]

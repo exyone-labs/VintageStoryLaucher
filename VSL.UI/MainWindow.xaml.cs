@@ -26,6 +26,7 @@ public partial class MainWindow : FluentWindow
             NavSaves,
             NavMods,
             NavConsole,
+            NavAppSettings,
             NavAbout
         ];
         Loaded += MainWindow_Loaded;

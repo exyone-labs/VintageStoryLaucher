@@ -14,7 +14,11 @@ namespace VSL.UI.ViewModels;
 
 public sealed class MainViewModel : ObservableObject, IAsyncDisposable
 {
+    private const string AutoStartRegistryKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+    private const string AutoStartRegistryValueName = "VSL";
+
     private readonly IVersionCatalogService _versionCatalogService;
+    private readonly ILauncherSettingsService _launcherSettingsService;
     private readonly IPackageService _packageService;
     private readonly IProfileService _profileService;
     private readonly IServerConfigService _serverConfigService;
@@ -35,6 +39,9 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     private readonly AsyncRelayCommand _saveCommonConfigCommand;
     private readonly AsyncRelayCommand _saveRawJsonCommand;
     private readonly AsyncRelayCommand _backupSaveCommand;
+    private readonly AsyncRelayCommand _saveLauncherSettingsCommand;
+    private readonly RelayCommand _chooseLauncherDataDirectoryCommand;
+    private readonly RelayCommand _chooseLauncherSaveDirectoryCommand;
 
     private bool _includeUnstable;
     private bool _isBusy;
@@ -69,9 +76,13 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     private string _uiLanguage = "zh-CN";
     private string _selectedNavKey = "versionprofile";
     private bool _isConsoleAutoFollow = true;
+    private string _launcherDataDirectory = WorkspaceLayout.DefaultDataRoot;
+    private string _launcherSaveDirectory = WorkspaceLayout.DefaultSavesRoot;
+    private bool _launchAtStartup;
 
     public MainViewModel(
         IVersionCatalogService versionCatalogService,
+        ILauncherSettingsService launcherSettingsService,
         IPackageService packageService,
         IProfileService profileService,
         IServerConfigService serverConfigService,
@@ -82,6 +93,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         ISnackbarService snackbarService)
     {
         _versionCatalogService = versionCatalogService;
+        _launcherSettingsService = launcherSettingsService;
         _packageService = packageService;
         _profileService = profileService;
         _serverConfigService = serverConfigService;
@@ -107,6 +119,12 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         LoadRawJsonCommand = new AsyncRelayCommand(LoadRawJsonAsync, () => SelectedProfile is not null);
         _saveRawJsonCommand = new AsyncRelayCommand(SaveRawJsonAsync, () => SelectedProfile is not null && !string.IsNullOrWhiteSpace(RawJsonText));
         SaveRawJsonCommand = _saveRawJsonCommand;
+        _saveLauncherSettingsCommand = new AsyncRelayCommand(SaveLauncherSettingsAsync, () => !IsBusy);
+        SaveLauncherSettingsCommand = _saveLauncherSettingsCommand;
+        _chooseLauncherDataDirectoryCommand = new RelayCommand(ChooseLauncherDataDirectory, () => !IsBusy);
+        ChooseLauncherDataDirectoryCommand = _chooseLauncherDataDirectoryCommand;
+        _chooseLauncherSaveDirectoryCommand = new RelayCommand(ChooseLauncherSaveDirectory, () => !IsBusy);
+        ChooseLauncherSaveDirectoryCommand = _chooseLauncherSaveDirectoryCommand;
 
         RefreshSavesCommand = new AsyncRelayCommand(RefreshSavesAsync, () => SelectedProfile is not null);
         CreateSaveCommand = new AsyncRelayCommand(CreateSaveAsync, () => SelectedProfile is not null && !string.IsNullOrWhiteSpace(NewSaveName));
@@ -191,6 +209,12 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     public ICommand ClearConsoleCommand { get; }
 
     public ICommand DownloadConsoleLogCommand { get; }
+
+    public ICommand SaveLauncherSettingsCommand { get; }
+
+    public ICommand ChooseLauncherDataDirectoryCommand { get; }
+
+    public ICommand ChooseLauncherSaveDirectoryCommand { get; }
 
     public bool IncludeUnstable
     {
@@ -361,6 +385,24 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         set => SetProperty(ref _isConsoleAutoFollow, value);
     }
 
+    public string LauncherDataDirectory
+    {
+        get => _launcherDataDirectory;
+        set => SetProperty(ref _launcherDataDirectory, value);
+    }
+
+    public string LauncherSaveDirectory
+    {
+        get => _launcherSaveDirectory;
+        set => SetProperty(ref _launcherSaveDirectory, value);
+    }
+
+    public bool LaunchAtStartup
+    {
+        get => _launchAtStartup;
+        set => SetProperty(ref _launchAtStartup, value);
+    }
+
     public string ServerName { get => _serverName; set => SetProperty(ref _serverName, value); }
     public string? Ip { get => _ip; set => SetProperty(ref _ip, value); }
     public int Port { get => _port; set => SetProperty(ref _port, value); }
@@ -380,6 +422,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
 
     public async Task InitializeAsync()
     {
+        await LoadLauncherSettingsAsync();
         RuntimeStatus = _serverProcessService.CurrentStatus;
         await RefreshReleasesAsync();
         await RefreshProfilesAsync();
@@ -593,6 +636,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
                 WorldHeight = w.WorldHeight;
 
                 SelectedProfile.ActiveSaveFile = w.SaveFileLocation;
+                SelectedProfile.SaveDirectory = Path.GetDirectoryName(w.SaveFileLocation);
                 SelectedProfile.LastUpdatedUtc = DateTimeOffset.UtcNow;
                 await _profileService.UpdateProfileAsync(SelectedProfile);
             }
@@ -673,6 +717,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
             }
 
             SelectedProfile.ActiveSaveFile = SaveFileLocation;
+            SelectedProfile.SaveDirectory = Path.GetDirectoryName(SaveFileLocation);
             SelectedProfile.LastUpdatedUtc = DateTimeOffset.UtcNow;
             await _profileService.UpdateProfileAsync(SelectedProfile);
 
@@ -715,6 +760,86 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         });
     }
 
+    private async Task LoadLauncherSettingsAsync()
+    {
+        var settings = await _launcherSettingsService.LoadAsync();
+        var dataDirectory = NormalizeDirectory(settings.DataDirectory, WorkspaceLayout.DefaultDataRoot);
+        var saveDirectory = NormalizeDirectory(settings.SaveDirectory, WorkspaceLayout.DefaultSavesRoot);
+
+        WorkspaceLayout.ApplyStorageSettings(dataDirectory, saveDirectory);
+
+        LauncherDataDirectory = dataDirectory;
+        LauncherSaveDirectory = saveDirectory;
+        LaunchAtStartup = IsAutoStartEnabled() || settings.AutoStartWithWindows;
+    }
+
+    private async Task SaveLauncherSettingsAsync()
+    {
+        await RunBusyAsync("正在保存启动器设置...", async () =>
+        {
+            var dataDirectory = NormalizeDirectory(LauncherDataDirectory, WorkspaceLayout.DefaultDataRoot);
+            var saveDirectory = NormalizeDirectory(LauncherSaveDirectory, WorkspaceLayout.DefaultSavesRoot);
+
+            Directory.CreateDirectory(dataDirectory);
+            Directory.CreateDirectory(saveDirectory);
+
+            WorkspaceLayout.ApplyStorageSettings(dataDirectory, saveDirectory);
+
+            var persistResult = await _launcherSettingsService.SaveAsync(new LauncherSettings
+            {
+                DataDirectory = dataDirectory,
+                SaveDirectory = saveDirectory,
+                AutoStartWithWindows = LaunchAtStartup
+            });
+
+            if (!persistResult.IsSuccess)
+            {
+                SetMessage(persistResult.Message ?? "保存启动器设置失败。");
+                return;
+            }
+
+            LauncherDataDirectory = dataDirectory;
+            LauncherSaveDirectory = saveDirectory;
+
+            var autoStartResult = TrySetAutoStart(LaunchAtStartup);
+            if (!autoStartResult.IsSuccess)
+            {
+                SetMessage($"{persistResult.Message ?? "设置已保存。"}\n{autoStartResult.Message}");
+                return;
+            }
+
+            SetMessage("设置已保存。新目录仅影响后续新建档案。");
+        });
+    }
+
+    private void ChooseLauncherDataDirectory()
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "选择默认数据目录",
+            InitialDirectory = NormalizeDirectory(LauncherDataDirectory, WorkspaceLayout.DefaultDataRoot)
+        };
+
+        if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.FolderName))
+        {
+            LauncherDataDirectory = NormalizeDirectory(dialog.FolderName, WorkspaceLayout.DefaultDataRoot);
+        }
+    }
+
+    private void ChooseLauncherSaveDirectory()
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "选择默认存档目录",
+            InitialDirectory = NormalizeDirectory(LauncherSaveDirectory, WorkspaceLayout.DefaultSavesRoot)
+        };
+
+        if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.FolderName))
+        {
+            LauncherSaveDirectory = NormalizeDirectory(dialog.FolderName, WorkspaceLayout.DefaultSavesRoot);
+        }
+    }
+
     private async Task RefreshSavesAsync()
     {
         if (SelectedProfile is null)
@@ -748,6 +873,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
             {
                 SaveFileLocation = result.Value;
                 SelectedProfile.ActiveSaveFile = result.Value;
+                SelectedProfile.SaveDirectory = Path.GetDirectoryName(result.Value);
                 SelectedProfile.LastUpdatedUtc = DateTimeOffset.UtcNow;
                 await _profileService.UpdateProfileAsync(SelectedProfile);
             }
@@ -772,6 +898,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
             {
                 SaveFileLocation = SelectedSave.FullPath;
                 SelectedProfile.ActiveSaveFile = SelectedSave.FullPath;
+                SelectedProfile.SaveDirectory = Path.GetDirectoryName(SelectedSave.FullPath);
                 SelectedProfile.LastUpdatedUtc = DateTimeOffset.UtcNow;
                 await _profileService.UpdateProfileAsync(SelectedProfile);
                 await LoadRawJsonAsync();
@@ -1031,6 +1158,85 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         return ControlAppearance.Info;
     }
 
+    private static string NormalizeDirectory(string? value, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return fallback;
+        }
+
+        try
+        {
+            return Path.GetFullPath(value.Trim());
+        }
+        catch
+        {
+            return fallback;
+        }
+    }
+
+    private static bool IsAutoStartEnabled()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(AutoStartRegistryKeyPath, writable: false);
+            var value = key?.GetValue(AutoStartRegistryValueName) as string;
+            return !string.IsNullOrWhiteSpace(value);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static OperationResult TrySetAutoStart(bool enabled)
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.CreateSubKey(AutoStartRegistryKeyPath);
+            if (key is null)
+            {
+                return OperationResult.Failed("无法打开启动项注册表。");
+            }
+
+            if (enabled)
+            {
+                key.SetValue(AutoStartRegistryValueName, BuildAutoStartCommand(), RegistryValueKind.String);
+            }
+            else
+            {
+                key.DeleteValue(AutoStartRegistryValueName, throwOnMissingValue: false);
+            }
+
+            return OperationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.Failed("设置开机自启动失败。", ex);
+        }
+    }
+
+    private static string BuildAutoStartCommand()
+    {
+        var executablePath = Environment.ProcessPath;
+        if (string.IsNullOrWhiteSpace(executablePath)
+            || executablePath.EndsWith("dotnet.exe", StringComparison.OrdinalIgnoreCase))
+        {
+            var candidate = Path.Combine(AppContext.BaseDirectory, "VSL.UI.exe");
+            if (File.Exists(candidate))
+            {
+                executablePath = candidate;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(executablePath))
+        {
+            executablePath = Path.Combine(AppContext.BaseDirectory, "VSL.UI.exe");
+        }
+
+        return $"\"{executablePath}\"";
+    }
+
     private static void UpdateCollection<T>(ObservableCollection<T> target, IEnumerable<T> source)
     {
         target.Clear();
@@ -1127,6 +1333,9 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         _startServerCommand.RaiseCanExecuteChanged();
         _stopServerCommand.RaiseCanExecuteChanged();
         _sendConsoleCommand.RaiseCanExecuteChanged();
+        _saveLauncherSettingsCommand.RaiseCanExecuteChanged();
+        _chooseLauncherDataDirectoryCommand.RaiseCanExecuteChanged();
+        _chooseLauncherSaveDirectoryCommand.RaiseCanExecuteChanged();
         RaiseConsoleCommandStates();
     }
 

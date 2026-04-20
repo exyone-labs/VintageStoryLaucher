@@ -11,6 +11,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IVersionCatalogService, VersionCatalogService>();
         services.AddHttpClient<IPackageService, PackageService>();
 
+        services.AddSingleton<ILauncherSettingsService, LauncherSettingsService>();
         services.AddSingleton<IProfileService, ProfileService>();
         services.AddSingleton<IServerConfigService, ServerConfigService>();
         services.AddSingleton<ISaveService, SaveService>();

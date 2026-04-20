@@ -55,7 +55,7 @@ public sealed class ServerConfigService : IServerConfigService
         {
             Seed = ReadString(worldConfig["Seed"], "123456789"),
             WorldName = ReadString(worldConfig["WorldName"], "A new world"),
-            SaveFileLocation = ReadString(worldConfig["SaveFileLocation"], WorkspaceLayout.GetDefaultSaveFile(profile.DataPath)),
+            SaveFileLocation = ReadString(worldConfig["SaveFileLocation"], WorkspaceLayout.GetDefaultSaveFile(profile)),
             PlayStyle = ReadString(worldConfig["PlayStyle"], "surviveandbuild"),
             WorldType = ReadString(worldConfig["WorldType"], "standard"),
             WorldHeight = mapSizeY ?? 256

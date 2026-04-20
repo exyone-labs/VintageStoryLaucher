@@ -36,9 +36,11 @@ public sealed class ProfileService(IPackageService packageService) : IProfileSer
 
             var profileId = Guid.NewGuid().ToString("N");
             var dataPath = WorkspaceLayout.GetProfileDataPath(profileId);
+            var saveDirectory = WorkspaceLayout.GetProfileSavesPath(profileId);
             Directory.CreateDirectory(dataPath);
+            Directory.CreateDirectory(saveDirectory);
 
-            var defaultSave = WorkspaceLayout.GetDefaultSaveFile(dataPath);
+            var defaultSave = WorkspaceLayout.GetProfileDefaultSaveFile(profileId);
             var profile = new ServerProfile
             {
                 Id = profileId,
@@ -46,6 +48,7 @@ public sealed class ProfileService(IPackageService packageService) : IProfileSer
                 Version = version,
                 DataPath = dataPath,
                 ActiveSaveFile = defaultSave,
+                SaveDirectory = saveDirectory,
                 CreatedAtUtc = DateTimeOffset.UtcNow,
                 LastUpdatedUtc = DateTimeOffset.UtcNow
             };
@@ -85,6 +88,7 @@ public sealed class ProfileService(IPackageService packageService) : IProfileSer
             current.Version = profile.Version;
             current.DataPath = profile.DataPath;
             current.ActiveSaveFile = profile.ActiveSaveFile;
+            current.SaveDirectory = profile.SaveDirectory;
             current.Language = profile.Language;
             current.LastUpdatedUtc = DateTimeOffset.UtcNow;
 
@@ -111,10 +115,26 @@ public sealed class ProfileService(IPackageService packageService) : IProfileSer
             index.Profiles.Remove(current);
             await JsonStorage.WriteAsync(WorkspaceLayout.ProfilesPath, index, cancellationToken);
 
-            var profileRoot = WorkspaceLayout.GetProfileRoot(profileId);
-            if (Directory.Exists(profileRoot))
+            var cleanupTargets = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                Directory.Delete(profileRoot, recursive: true);
+                WorkspaceLayout.GetProfileRoot(profileId), // legacy workspace layout root
+                current.DataPath
+            };
+
+            if (!string.IsNullOrWhiteSpace(current.SaveDirectory))
+            {
+                cleanupTargets.Add(current.SaveDirectory);
+            }
+
+            var activeSaveDirectory = Path.GetDirectoryName(current.ActiveSaveFile);
+            if (!string.IsNullOrWhiteSpace(activeSaveDirectory))
+            {
+                cleanupTargets.Add(activeSaveDirectory);
+            }
+
+            foreach (var target in cleanupTargets)
+            {
+                TryDeleteProfileScopedDirectory(target, profileId);
             }
 
             return OperationResult.Success("已删除档案。");
@@ -183,5 +203,47 @@ public sealed class ProfileService(IPackageService packageService) : IProfileSer
         }
 
         Directory.CreateDirectory(Path.GetDirectoryName(profile.ActiveSaveFile)!);
+    }
+
+    private static void TryDeleteProfileScopedDirectory(string path, string profileId)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        string fullPath;
+        try
+        {
+            fullPath = Path.GetFullPath(path);
+        }
+        catch
+        {
+            return;
+        }
+
+        if (!Directory.Exists(fullPath))
+        {
+            return;
+        }
+
+        if (!IsProfileScopedPath(fullPath, profileId))
+        {
+            return;
+        }
+
+        Directory.Delete(fullPath, recursive: true);
+    }
+
+    private static bool IsProfileScopedPath(string path, string profileId)
+    {
+        var normalized = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return false;
+        }
+
+        var segments = normalized.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return segments.Any(x => string.Equals(x, profileId, StringComparison.OrdinalIgnoreCase));
     }
 }
