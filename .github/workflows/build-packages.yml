@@ -147,17 +147,54 @@ jobs:
           $iconFile = (Resolve-Path ".\VSL.UI\Assets\VSL.ico").Path
           $issFile = (Resolve-Path ".\packaging\installer.iss").Path
 
-          $isccCandidates = @(
+          $explicitCandidates = @(
             "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
-            "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe",
-            "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
-          ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and (Test-Path -LiteralPath $_) }
+            "$(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe' })",
+            "$(if ($env:ProgramFiles) { Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe' })",
+            "$env:ChocolateyInstall\lib\innosetup\tools\ISCC.exe",
+            "$env:ChocolateyInstall\lib\innosetup\tools\Inno Setup 6\ISCC.exe"
+          ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 
-          if (-not $isccCandidates -or $isccCandidates.Count -eq 0) {
+          $iscc = $null
+          foreach ($candidate in $explicitCandidates) {
+            if (Test-Path -LiteralPath $candidate) {
+              $iscc = $candidate
+              break
+            }
+          }
+
+          if (-not $iscc) {
+            $command = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+            if ($command) {
+              $iscc = $command.Source
+            }
+          }
+
+          if (-not $iscc) {
+            $searchRoots = @(
+              ${env:ProgramFiles(x86)},
+              $env:ProgramFiles,
+              "$env:LOCALAPPDATA\Programs",
+              $env:ChocolateyInstall
+            ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and (Test-Path -LiteralPath $_) }
+
+            foreach ($root in $searchRoots) {
+              $found = Get-ChildItem -Path $root -Recurse -Filter ISCC.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) {
+                $iscc = $found.FullName
+                break
+              }
+            }
+          }
+
+          if (-not $iscc) {
+            Write-Host "Debug: candidate roots and Inno Setup directories"
+            Get-ChildItem -Path "C:\Program Files", "C:\Program Files (x86)" -Directory -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -like "*Inno*" } | ForEach-Object { Write-Host "  $_" }
             throw "ISCC.exe not found after installing Inno Setup."
           }
 
-          $iscc = $isccCandidates[0]
+          Write-Host "Using ISCC: $iscc"
           & $iscc `
             "/DMyAppVersion=$version" `
             "/DSourceDir=$installerSource" `
