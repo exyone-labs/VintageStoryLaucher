@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ISaveService, SaveService>();
         services.AddSingleton<IModService, ModService>();
         services.AddSingleton<IServerProcessService, ServerProcessService>();
+        services.AddSingleton<IVs2QQProcessService, Vs2QQProcessService>();
         services.AddSingleton<ILogTailService, LogTailService>();
 
         return services;

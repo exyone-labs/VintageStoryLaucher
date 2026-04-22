@@ -47,13 +47,13 @@
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Style="{StaticResource VslTitleBarActionButtonStyle}" Command="{Binding StartServerCommand}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Width="14" Height="14" Margin="0,0,6,0" Source="{DynamicResource LucidePlayImage}" Stretch="Uniform" />
+                                <ui:SymbolIcon Style="{StaticResource VslTitleBarSymbolIconStyle}" Symbol="Play20" />
                                 <TextBlock VerticalAlignment="Center" Text="启动服务器" />
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource VslTitleBarActionButtonStyle}" Margin="0" Command="{Binding StopServerCommand}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Image Width="14" Height="14" Margin="0,0,6,0" Source="{DynamicResource LucideStopImage}" Stretch="Uniform" />
+                                <ui:SymbolIcon Style="{StaticResource VslTitleBarSymbolIconStyle}" Symbol="Stop20" />
                                 <TextBlock VerticalAlignment="Center" Text="停止服务器" />
                             </StackPanel>
                         </Button>
@@ -61,17 +61,20 @@
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button Style="{StaticResource VslWindowControlButtonStyle}"
-                                Content="&#xE921;"
                                 ToolTip="最小化"
-                                Click="WindowMinimizeButton_OnClick" />
+                                Click="WindowMinimizeButton_OnClick">
+                            <ui:SymbolIcon Style="{StaticResource VslWindowControlSymbolIconStyle}" Symbol="Subtract20" />
+                        </Button>
                         <Button Style="{StaticResource VslWindowControlButtonStyle}"
-                                Content="&#xE922;"
                                 ToolTip="最大化/还原"
-                                Click="WindowMaximizeButton_OnClick" />
+                                Click="WindowMaximizeButton_OnClick">
+                            <ui:SymbolIcon Style="{StaticResource VslWindowControlSymbolIconStyle}" Symbol="Square20" />
+                        </Button>
                         <Button Style="{StaticResource VslWindowControlButtonStyle}"
-                                Content="&#xE8BB;"
                                 ToolTip="关闭"
-                                Click="WindowCloseButton_OnClick" />
+                                Click="WindowCloseButton_OnClick">
+                            <ui:SymbolIcon Style="{StaticResource VslWindowControlSymbolIconStyle}" Symbol="Dismiss20" />
+                        </Button>
                     </StackPanel>
                 </Grid>
             </ui:TitleBar.TrailingContent>
@@ -103,27 +106,32 @@
                     <ui:NavigationView.MenuItems>
                         <ui:NavigationViewItem x:Name="NavVersionProfiles" Content="版本与档案" Tag="versionprofile" IsActive="True" Click="NavigationItem_OnClick">
                             <ui:NavigationViewItem.Icon>
-                                <ui:ImageIcon Style="{StaticResource VslNavImageIconStyle}" Source="{DynamicResource LucideNavVersionImage}" />
+                                <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="BoxMultiple20" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
                         <ui:NavigationViewItem x:Name="NavSettings" Content="服务器配置" Tag="settings" Click="NavigationItem_OnClick">
                             <ui:NavigationViewItem.Icon>
-                                <ui:ImageIcon Style="{StaticResource VslNavImageIconStyle}" Source="{DynamicResource LucideNavSettingsImage}" />
+                                <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="Server20" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
                         <ui:NavigationViewItem x:Name="NavAdvancedJson" Content="高级 JSON" Tag="advancedjson" Click="NavigationItem_OnClick">
                             <ui:NavigationViewItem.Icon>
-                                <ui:ImageIcon Style="{StaticResource VslNavImageIconStyle}" Source="{DynamicResource LucideNavJsonImage}" />
+                                <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="CodeBlock20" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
                         <ui:NavigationViewItem x:Name="NavSaves" Content="存档管理" Tag="saves" Click="NavigationItem_OnClick">
                             <ui:NavigationViewItem.Icon>
-                                <ui:ImageIcon Style="{StaticResource VslNavImageIconStyle}" Source="{DynamicResource LucideNavSaveImage}" />
+                                <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="Save20" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
                         <ui:NavigationViewItem x:Name="NavMods" Content="Mod 管理" Tag="mods" Click="NavigationItem_OnClick">
                             <ui:NavigationViewItem.Icon>
-                                <ui:ImageIcon Style="{StaticResource VslNavImageIconStyle}" Source="{DynamicResource LucideNavModsImage}" />
+                                <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="PuzzleCube20" />
+                            </ui:NavigationViewItem.Icon>
+                        </ui:NavigationViewItem>
+                        <ui:NavigationViewItem x:Name="NavVs2QQConfig" Content="VS2QQ 配置" Tag="vs2qqconfig" Click="NavigationItem_OnClick">
+                            <ui:NavigationViewItem.Icon>
+                                <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="Bot20" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
                     </ui:NavigationView.MenuItems>
@@ -131,17 +139,22 @@
                     <ui:NavigationView.FooterMenuItems>
                         <ui:NavigationViewItem x:Name="NavConsole" Content="控制台" Tag="console" Click="NavigationItem_OnClick">
                             <ui:NavigationViewItem.Icon>
-                                <ui:ImageIcon Style="{StaticResource VslNavImageIconStyle}" Source="{DynamicResource LucideNavConsoleImage}" />
+                                <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="WindowConsole20" />
+                            </ui:NavigationViewItem.Icon>
+                        </ui:NavigationViewItem>
+                        <ui:NavigationViewItem x:Name="NavVs2QQRunner" Content="VS2QQ 启动" Tag="vs2qqrunner" Click="NavigationItem_OnClick">
+                            <ui:NavigationViewItem.Icon>
+                                <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="PlayCircle20" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
                         <ui:NavigationViewItem x:Name="NavAppSettings" Content="设置" Tag="appsettings" Click="NavigationItem_OnClick">
                             <ui:NavigationViewItem.Icon>
-                                <ui:ImageIcon Style="{StaticResource VslNavImageIconStyle}" Source="{DynamicResource LucideNavSettingsImage}" />
+                                <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="Settings20" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
                         <ui:NavigationViewItem x:Name="NavAbout" Content="关于" Tag="about" Click="NavigationItem_OnClick">
                             <ui:NavigationViewItem.Icon>
-                                <ui:ImageIcon Style="{StaticResource VslNavImageIconStyle}" Source="{DynamicResource LucideNavAboutImage}" />
+                                <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="Info20" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
                     </ui:NavigationView.FooterMenuItems>
@@ -157,7 +170,9 @@
                     <pages:AdvancedJsonPage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=advancedjson}" />
                     <pages:SavesPage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=saves}" />
                     <pages:ModsPage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=mods}" />
+                    <pages:Vs2QQConfigPage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=vs2qqconfig}" />
                     <pages:ConsolePage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=console}" />
+                    <pages:Vs2QQRunnerPage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=vs2qqrunner}" />
                     <pages:AppSettingsPage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=appsettings}" />
                     <pages:AboutPage Visibility="{Binding SelectedNavKey, Converter={StaticResource NavKeyToVisibilityConverter}, ConverterParameter=about}" />
                 </Grid>

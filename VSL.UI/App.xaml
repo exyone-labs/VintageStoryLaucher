@@ -28,15 +28,8 @@
             <SolidColorBrush x:Key="VslLogoGreenBrush" Color="#6B8E23" />
             <SolidColorBrush x:Key="VslLogoBrownBrush" Color="#8B5A2B" />
             <SolidColorBrush x:Key="VslLogoGrayBrush" Color="#555555" />
-            <SolidColorBrush x:Key="VslIconStrokeBrush" Color="#424242" />
             <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
             <CornerRadius x:Key="PopupCornerRadius">4</CornerRadius>
-            <Pen x:Key="VslIconStrokePen"
-                 Brush="{DynamicResource VslIconStrokeBrush}"
-                 Thickness="1.9"
-                 StartLineCap="Round"
-                 EndLineCap="Round"
-                 LineJoin="Round" />
             <DrawingImage x:Key="VslAppLogoImage">
                 <DrawingImage.Drawing>
                     <DrawingGroup>
@@ -46,93 +39,23 @@
                     </DrawingGroup>
                 </DrawingImage.Drawing>
             </DrawingImage>
-            <Style x:Key="VslNavImageIconStyle" TargetType="ui:ImageIcon">
-                <Setter Property="Width" Value="15" />
-                <Setter Property="Height" Value="15" />
+            <Style x:Key="VslNavSymbolIconStyle" TargetType="ui:SymbolIcon">
+                <Setter Property="Filled" Value="False" />
+                <Setter Property="FontSize" Value="19" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
-            <DrawingImage x:Key="LucideNavVersionImage">
-                <DrawingImage.Drawing>
-                    <DrawingGroup>
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="m7 16.5-4.74-2.85" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="m7 16.5 5-3" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M7 16.5v5.17" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="m17 16.5-5-3" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="m17 16.5 4.74-2.85" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M17 16.5v5.17" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 8 7.26 5.15" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="m12 8 4.74-2.85" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 13.5V8" />
-                    </DrawingGroup>
-                </DrawingImage.Drawing>
-            </DrawingImage>
-            <DrawingImage x:Key="LucideNavSettingsImage">
-                <DrawingImage.Drawing>
-                    <DrawingGroup>
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 9 A 3 3 0 1 1 12 15 A 3 3 0 1 1 12 9 Z" />
-                    </DrawingGroup>
-                </DrawingImage.Drawing>
-            </DrawingImage>
-            <DrawingImage x:Key="LucideNavJsonImage">
-                <DrawingImage.Drawing>
-                    <DrawingGroup>
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M14 2v5a1 1 0 0 0 1 1h5" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M10 12a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1 1 1 0 0 1 1 1v1a1 1 0 0 0 1 1" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M14 18a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1 1 1 0 0 1-1-1v-1a1 1 0 0 0-1-1" />
-                    </DrawingGroup>
-                </DrawingImage.Drawing>
-            </DrawingImage>
-            <DrawingImage x:Key="LucideNavSaveImage">
-                <DrawingImage.Drawing>
-                    <DrawingGroup>
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M7 3v4a1 1 0 0 0 1 1h7" />
-                    </DrawingGroup>
-                </DrawingImage.Drawing>
-            </DrawingImage>
-            <DrawingImage x:Key="LucideNavModsImage">
-                <DrawingImage.Drawing>
-                    <DrawingGroup>
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z" />
-                    </DrawingGroup>
-                </DrawingImage.Drawing>
-            </DrawingImage>
-            <DrawingImage x:Key="LucideNavConsoleImage">
-                <DrawingImage.Drawing>
-                    <DrawingGroup>
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 19h8" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M4 17l6-6-6-6" />
-                    </DrawingGroup>
-                </DrawingImage.Drawing>
-            </DrawingImage>
-            <DrawingImage x:Key="LucideNavAboutImage">
-                <DrawingImage.Drawing>
-                    <DrawingGroup>
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 22 A 10 10 0 1 1 12 2 A 10 10 0 1 1 12 22 Z" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 10v6" />
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M12 7h.01" />
-                    </DrawingGroup>
-                </DrawingImage.Drawing>
-            </DrawingImage>
-            <DrawingImage x:Key="LucidePlayImage">
-                <DrawingImage.Drawing>
-                    <DrawingGroup>
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" />
-                    </DrawingGroup>
-                </DrawingImage.Drawing>
-            </DrawingImage>
-            <DrawingImage x:Key="LucideStopImage">
-                <DrawingImage.Drawing>
-                    <DrawingGroup>
-                        <GeometryDrawing Brush="{x:Null}" Pen="{StaticResource VslIconStrokePen}" Geometry="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    </DrawingGroup>
-                </DrawingImage.Drawing>
-            </DrawingImage>
+            <Style x:Key="VslTitleBarSymbolIconStyle" TargetType="ui:SymbolIcon">
+                <Setter Property="Filled" Value="False" />
+                <Setter Property="FontSize" Value="17" />
+                <Setter Property="Margin" Value="0,0,6,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style x:Key="VslWindowControlSymbolIconStyle" TargetType="ui:SymbolIcon">
+                <Setter Property="Filled" Value="False" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+            </Style>
 
             <Style x:Key="VslGlassPanelStyle" TargetType="Border">
                 <Setter Property="CornerRadius" Value="8" />
@@ -258,8 +181,6 @@
                 <Setter Property="Foreground" Value="#2A2A2A" />
                 <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
-                <Setter Property="FontSize" Value="10" />
                 <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />

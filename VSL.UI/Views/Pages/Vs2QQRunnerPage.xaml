@@ -1,0 +1,81 @@
+<UserControl x:Class="VSL.UI.Views.Pages.Vs2QQRunnerPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             mc:Ignorable="d"
+             d:DesignHeight="860"
+             d:DesignWidth="1180">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="2,0,0,12">
+            <TextBlock Style="{DynamicResource VslPageTitleStyle}" Text="VS2QQ 启动与日志" />
+            <TextBlock Style="{DynamicResource VslPageSubTitleStyle}" Text="启动/停止桥接进程，并实时查看 OneBot 与日志转发输出。" />
+        </StackPanel>
+
+        <ui:Card Grid.Row="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0">
+                    <Border Style="{DynamicResource VslActionBarHostStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <WrapPanel Grid.Column="0">
+                                <Button Content="启动 VS2QQ"
+                                        Style="{StaticResource VslToolbarButtonStyle}"
+                                        Command="{Binding StartVs2QQCommand}" />
+                                <Button Content="停止 VS2QQ"
+                                        Style="{StaticResource VslToolbarButtonStyle}"
+                                        Command="{Binding StopVs2QQCommand}" />
+                            </WrapPanel>
+
+                            <WrapPanel Grid.Column="1" HorizontalAlignment="Right">
+                                <CheckBox Content="追踪"
+                                          Margin="0,0,8,8"
+                                          VerticalAlignment="Center"
+                                          IsChecked="{Binding IsVs2QQConsoleAutoFollow}" />
+                                <Button Content="清空"
+                                        Style="{StaticResource VslToolbarButtonStyle}"
+                                        Command="{Binding ClearVs2QQConsoleCommand}" />
+                            </WrapPanel>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Margin="0,0,0,10"
+                               Foreground="{DynamicResource VslMutedTextBrush}"
+                               Text="{Binding Vs2QQRuntimeStateText}" />
+                </StackPanel>
+
+                <Border Grid.Row="1"
+                        CornerRadius="4"
+                        ClipToBounds="True"
+                        Background="{DynamicResource VslCodePaneBrush}"
+                        BorderBrush="{DynamicResource VslPanelBorderBrush}"
+                        BorderThickness="1">
+                    <ListBox x:Name="Vs2QQConsoleList"
+                             Style="{StaticResource VslConsoleListBoxStyle}"
+                             ItemContainerStyle="{StaticResource VslConsoleListBoxItemStyle}"
+                             ItemsSource="{Binding Vs2QQConsoleLines}"
+                             FontFamily="Consolas"
+                             FontSize="12"
+                             Foreground="#D4D4D4"
+                             BorderThickness="0"
+                             Padding="4" />
+                </Border>
+            </Grid>
+        </ui:Card>
+    </Grid>
+</UserControl>

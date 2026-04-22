@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -25,6 +26,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     private readonly ISaveService _saveService;
     private readonly IModService _modService;
     private readonly IServerProcessService _serverProcessService;
+    private readonly IVs2QQProcessService _vs2qqProcessService;
     private readonly ILogTailService _logTailService;
     private readonly ISnackbarService _snackbarService;
 
@@ -40,8 +42,13 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     private readonly AsyncRelayCommand _saveRawJsonCommand;
     private readonly AsyncRelayCommand _backupSaveCommand;
     private readonly AsyncRelayCommand _saveLauncherSettingsCommand;
+    private readonly AsyncRelayCommand _loadVs2QQConfigCommand;
+    private readonly AsyncRelayCommand _saveVs2QQConfigCommand;
+    private readonly AsyncRelayCommand _startVs2QQCommand;
+    private readonly AsyncRelayCommand _stopVs2QQCommand;
     private readonly RelayCommand _chooseLauncherDataDirectoryCommand;
     private readonly RelayCommand _chooseLauncherSaveDirectoryCommand;
+    private readonly RelayCommand _chooseVs2QQDatabasePathCommand;
 
     private bool _includeUnstable;
     private bool _isBusy;
@@ -79,6 +86,16 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     private string _launcherDataDirectory = WorkspaceLayout.DefaultDataRoot;
     private string _launcherSaveDirectory = WorkspaceLayout.DefaultSavesRoot;
     private bool _launchAtStartup;
+    private string _vs2qqOneBotWsUrl = "ws://127.0.0.1:3001/";
+    private string _vs2qqAccessToken = string.Empty;
+    private int _vs2qqReconnectIntervalSec = 5;
+    private string _vs2qqDatabasePath = Path.Combine(WorkspaceLayout.WorkspaceRoot, "vs2qq", "vs2qq.db");
+    private double _vs2qqPollIntervalSec = 1.0;
+    private string _vs2qqDefaultEncoding = "utf-8";
+    private string _vs2qqFallbackEncoding = "gbk";
+    private string _vs2qqSuperUsersText = string.Empty;
+    private bool _isVs2QQConsoleAutoFollow = true;
+    private Vs2QQRuntimeStatus _vs2qqRuntimeStatus = new();
 
     public MainViewModel(
         IVersionCatalogService versionCatalogService,
@@ -89,6 +106,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         ISaveService saveService,
         IModService modService,
         IServerProcessService serverProcessService,
+        IVs2QQProcessService vs2qqProcessService,
         ILogTailService logTailService,
         ISnackbarService snackbarService)
     {
@@ -100,6 +118,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         _saveService = saveService;
         _modService = modService;
         _serverProcessService = serverProcessService;
+        _vs2qqProcessService = vs2qqProcessService;
         _logTailService = logTailService;
         _snackbarService = snackbarService;
 
@@ -125,6 +144,16 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         ChooseLauncherDataDirectoryCommand = _chooseLauncherDataDirectoryCommand;
         _chooseLauncherSaveDirectoryCommand = new RelayCommand(ChooseLauncherSaveDirectory, () => !IsBusy);
         ChooseLauncherSaveDirectoryCommand = _chooseLauncherSaveDirectoryCommand;
+        _loadVs2QQConfigCommand = new AsyncRelayCommand(LoadVs2QQConfigAsync, () => !IsBusy);
+        LoadVs2QQConfigCommand = _loadVs2QQConfigCommand;
+        _saveVs2QQConfigCommand = new AsyncRelayCommand(SaveVs2QQConfigAsync, () => !IsBusy && CanSaveVs2QQSettings());
+        SaveVs2QQConfigCommand = _saveVs2QQConfigCommand;
+        _startVs2QQCommand = new AsyncRelayCommand(StartVs2QQAsync, () => !Vs2QQRuntimeStatus.IsRunning && !IsBusy);
+        StartVs2QQCommand = _startVs2QQCommand;
+        _stopVs2QQCommand = new AsyncRelayCommand(StopVs2QQAsync, () => Vs2QQRuntimeStatus.IsRunning && !IsBusy);
+        StopVs2QQCommand = _stopVs2QQCommand;
+        _chooseVs2QQDatabasePathCommand = new RelayCommand(ChooseVs2QQDatabasePath, () => !IsBusy);
+        ChooseVs2QQDatabasePathCommand = _chooseVs2QQDatabasePathCommand;
 
         RefreshSavesCommand = new AsyncRelayCommand(RefreshSavesAsync, () => SelectedProfile is not null);
         CreateSaveCommand = new AsyncRelayCommand(CreateSaveAsync, () => SelectedProfile is not null && !string.IsNullOrWhiteSpace(NewSaveName));
@@ -150,9 +179,12 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
             RaiseConsoleCommandStates();
         });
         DownloadConsoleLogCommand = new AsyncRelayCommand(DownloadConsoleLogAsync, () => ConsoleLines.Count > 0);
+        ClearVs2QQConsoleCommand = new RelayCommand(() => Vs2QQConsoleLines.Clear());
 
         _serverProcessService.OutputReceived += OnProcessOutputReceived;
         _serverProcessService.StatusChanged += OnProcessStatusChanged;
+        _vs2qqProcessService.OutputReceived += OnVs2QQOutputReceived;
+        _vs2qqProcessService.StatusChanged += OnVs2QQStatusChanged;
         _logTailService.LogLineReceived += OnLogTailLineReceived;
     }
 
@@ -167,6 +199,8 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     public ObservableCollection<WorldRuleItemViewModel> WorldRules { get; } = [];
 
     public ObservableCollection<string> ConsoleLines { get; } = [];
+
+    public ObservableCollection<string> Vs2QQConsoleLines { get; } = [];
 
     public ICommand RefreshReleasesCommand { get; }
 
@@ -215,6 +249,18 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     public ICommand ChooseLauncherDataDirectoryCommand { get; }
 
     public ICommand ChooseLauncherSaveDirectoryCommand { get; }
+
+    public ICommand LoadVs2QQConfigCommand { get; }
+
+    public ICommand SaveVs2QQConfigCommand { get; }
+
+    public ICommand StartVs2QQCommand { get; }
+
+    public ICommand StopVs2QQCommand { get; }
+
+    public ICommand ChooseVs2QQDatabasePathCommand { get; }
+
+    public ICommand ClearVs2QQConsoleCommand { get; }
 
     public bool IncludeUnstable
     {
@@ -403,6 +449,102 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         set => SetProperty(ref _launchAtStartup, value);
     }
 
+    public string Vs2QQOneBotWsUrl
+    {
+        get => _vs2qqOneBotWsUrl;
+        set
+        {
+            if (SetProperty(ref _vs2qqOneBotWsUrl, value))
+            {
+                UpdateCommandStates();
+            }
+        }
+    }
+
+    public string Vs2QQAccessToken
+    {
+        get => _vs2qqAccessToken;
+        set => SetProperty(ref _vs2qqAccessToken, value);
+    }
+
+    public int Vs2QQReconnectIntervalSec
+    {
+        get => _vs2qqReconnectIntervalSec;
+        set
+        {
+            if (SetProperty(ref _vs2qqReconnectIntervalSec, value))
+            {
+                UpdateCommandStates();
+            }
+        }
+    }
+
+    public string Vs2QQDatabasePath
+    {
+        get => _vs2qqDatabasePath;
+        set
+        {
+            if (SetProperty(ref _vs2qqDatabasePath, value))
+            {
+                UpdateCommandStates();
+            }
+        }
+    }
+
+    public double Vs2QQPollIntervalSec
+    {
+        get => _vs2qqPollIntervalSec;
+        set
+        {
+            if (SetProperty(ref _vs2qqPollIntervalSec, value))
+            {
+                UpdateCommandStates();
+            }
+        }
+    }
+
+    public string Vs2QQDefaultEncoding
+    {
+        get => _vs2qqDefaultEncoding;
+        set => SetProperty(ref _vs2qqDefaultEncoding, value);
+    }
+
+    public string Vs2QQFallbackEncoding
+    {
+        get => _vs2qqFallbackEncoding;
+        set => SetProperty(ref _vs2qqFallbackEncoding, value);
+    }
+
+    public string Vs2QQSuperUsersText
+    {
+        get => _vs2qqSuperUsersText;
+        set => SetProperty(ref _vs2qqSuperUsersText, value);
+    }
+
+    public bool IsVs2QQConsoleAutoFollow
+    {
+        get => _isVs2QQConsoleAutoFollow;
+        set => SetProperty(ref _isVs2QQConsoleAutoFollow, value);
+    }
+
+    public Vs2QQRuntimeStatus Vs2QQRuntimeStatus
+    {
+        get => _vs2qqRuntimeStatus;
+        private set
+        {
+            if (SetProperty(ref _vs2qqRuntimeStatus, value))
+            {
+                OnPropertyChanged(nameof(Vs2QQRuntimeStateText));
+                UpdateCommandStates();
+            }
+        }
+    }
+
+    public string Vs2QQRuntimeStateText =>
+        Vs2QQRuntimeStatus.IsRunning
+            ? $"运行中 (OneBot: {Vs2QQRuntimeStatus.OneBotWsUrl}, 启动时间: {Vs2QQRuntimeStatus.StartedAtUtc?.ToLocalTime():yyyy-MM-dd HH:mm:ss})"
+            : "未运行";
+
     public string ServerName { get => _serverName; set => SetProperty(ref _serverName, value); }
     public string? Ip { get => _ip; set => SetProperty(ref _ip, value); }
     public int Port { get => _port; set => SetProperty(ref _port, value); }
@@ -424,6 +566,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     {
         await LoadLauncherSettingsAsync();
         RuntimeStatus = _serverProcessService.CurrentStatus;
+        Vs2QQRuntimeStatus = _vs2qqProcessService.CurrentStatus;
         await RefreshReleasesAsync();
         await RefreshProfilesAsync();
     }
@@ -432,8 +575,11 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     {
         _serverProcessService.OutputReceived -= OnProcessOutputReceived;
         _serverProcessService.StatusChanged -= OnProcessStatusChanged;
+        _vs2qqProcessService.OutputReceived -= OnVs2QQOutputReceived;
+        _vs2qqProcessService.StatusChanged -= OnVs2QQStatusChanged;
         _logTailService.LogLineReceived -= OnLogTailLineReceived;
         await _logTailService.StopAsync();
+        await _vs2qqProcessService.StopAsync(TimeSpan.FromSeconds(4));
         _logTailService.Dispose();
     }
 
@@ -771,6 +917,8 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         LauncherDataDirectory = dataDirectory;
         LauncherSaveDirectory = saveDirectory;
         LaunchAtStartup = IsAutoStartEnabled() || settings.AutoStartWithWindows;
+
+        ApplyVs2QQSettings(settings);
     }
 
     private async Task SaveLauncherSettingsAsync()
@@ -789,7 +937,15 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
             {
                 DataDirectory = dataDirectory,
                 SaveDirectory = saveDirectory,
-                AutoStartWithWindows = LaunchAtStartup
+                AutoStartWithWindows = LaunchAtStartup,
+                Vs2QQOneBotWsUrl = NormalizeVs2QQWsUrl(Vs2QQOneBotWsUrl),
+                Vs2QQAccessToken = Vs2QQAccessToken?.Trim() ?? string.Empty,
+                Vs2QQReconnectIntervalSec = NormalizePositiveInt(Vs2QQReconnectIntervalSec, 5),
+                Vs2QQDatabasePath = NormalizeVs2QQDatabasePath(Vs2QQDatabasePath),
+                Vs2QQPollIntervalSec = NormalizePositiveDouble(Vs2QQPollIntervalSec, 1.0),
+                Vs2QQDefaultEncoding = NormalizeText(Vs2QQDefaultEncoding, "utf-8"),
+                Vs2QQFallbackEncoding = NormalizeText(Vs2QQFallbackEncoding, "gbk"),
+                Vs2QQSuperUsers = ParseSuperUsers(Vs2QQSuperUsersText)
             });
 
             if (!persistResult.IsSuccess)
@@ -838,6 +994,110 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         {
             LauncherSaveDirectory = NormalizeDirectory(dialog.FolderName, WorkspaceLayout.DefaultSavesRoot);
         }
+    }
+
+    private void ChooseVs2QQDatabasePath()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "选择 VS2QQ 数据库文件",
+            InitialDirectory = ResolveVs2QQDatabaseDirectory(Vs2QQDatabasePath),
+            Filter = "SQLite 数据库 (*.db;*.sqlite)|*.db;*.sqlite|所有文件 (*.*)|*.*",
+            CheckFileExists = false
+        };
+
+        if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.FileName))
+        {
+            Vs2QQDatabasePath = NormalizeVs2QQDatabasePath(dialog.FileName);
+        }
+    }
+
+    private async Task LoadVs2QQConfigAsync()
+    {
+        if (IsBusy)
+        {
+            SetMessage("当前有任务正在执行，请稍候。");
+            return;
+        }
+
+        var settings = await _launcherSettingsService.LoadAsync();
+        ApplyVs2QQSettings(settings);
+        SetMessage("VS2QQ 配置已加载。");
+    }
+
+    private async Task SaveVs2QQConfigAsync()
+    {
+        await RunBusyAsync("正在保存 VS2QQ 配置...", async () =>
+        {
+            var validationResult = ValidateVs2QQSettings();
+            if (!validationResult.IsSuccess)
+            {
+                SetMessage(validationResult.Message ?? "VS2QQ 配置无效。");
+                return;
+            }
+
+            var persistResult = await _launcherSettingsService.SaveAsync(BuildLauncherSettingsSnapshot());
+
+            if (!persistResult.IsSuccess)
+            {
+                SetMessage(persistResult.Message ?? "保存 VS2QQ 配置失败。");
+                return;
+            }
+
+            SetMessage("VS2QQ 配置已保存。");
+        });
+    }
+
+    private async Task StartVs2QQAsync()
+    {
+        await RunBusyAsync("正在启动 VS2QQ...", async () =>
+        {
+            var validationResult = ValidateVs2QQSettings();
+            if (!validationResult.IsSuccess)
+            {
+                SetMessage(validationResult.Message ?? "VS2QQ 配置无效。");
+                return;
+            }
+
+            var persistResult = await _launcherSettingsService.SaveAsync(BuildLauncherSettingsSnapshot());
+            if (!persistResult.IsSuccess)
+            {
+                SetMessage(persistResult.Message ?? "启动器设置保存失败。");
+                return;
+            }
+
+            var result = await _vs2qqProcessService.StartAsync(new Vs2QQLaunchSettings
+            {
+                OneBotWsUrl = NormalizeVs2QQWsUrl(Vs2QQOneBotWsUrl),
+                AccessToken = string.IsNullOrWhiteSpace(Vs2QQAccessToken) ? null : Vs2QQAccessToken.Trim(),
+                ReconnectIntervalSec = NormalizePositiveInt(Vs2QQReconnectIntervalSec, 5),
+                DatabasePath = NormalizeVs2QQDatabasePath(Vs2QQDatabasePath),
+                PollIntervalSec = NormalizePositiveDouble(Vs2QQPollIntervalSec, 1.0),
+                DefaultEncoding = NormalizeText(Vs2QQDefaultEncoding, "utf-8"),
+                FallbackEncoding = NormalizeText(Vs2QQFallbackEncoding, "gbk"),
+                SuperUsers = ParseSuperUsers(Vs2QQSuperUsersText)
+            });
+
+            if (!result.IsSuccess)
+            {
+                var detail = BuildErrorMessage("启动 VS2QQ 失败。", result.Message, result.Exception);
+                Vs2QQConsoleLines.Add($"[system] {detail}");
+                TrimVs2QQConsole();
+                SetMessage(detail);
+                return;
+            }
+
+            SetMessage("VS2QQ 已启动。");
+        });
+    }
+
+    private async Task StopVs2QQAsync()
+    {
+        await RunBusyAsync("正在停止 VS2QQ...", async () =>
+        {
+            var result = await _vs2qqProcessService.StopAsync(TimeSpan.FromSeconds(6));
+            SetMessage(result.IsSuccess ? result.Message ?? "VS2QQ 已停止。" : result.Message ?? "停止 VS2QQ 失败。");
+        });
     }
 
     private async Task RefreshSavesAsync()
@@ -1175,6 +1435,150 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         }
     }
 
+    private bool CanSaveVs2QQSettings()
+    {
+        var validation = ValidateVs2QQSettings();
+        return validation.IsSuccess;
+    }
+
+    private void ApplyVs2QQSettings(LauncherSettings settings)
+    {
+        Vs2QQOneBotWsUrl = NormalizeVs2QQWsUrl(settings.Vs2QQOneBotWsUrl);
+        Vs2QQAccessToken = settings.Vs2QQAccessToken ?? string.Empty;
+        Vs2QQReconnectIntervalSec = NormalizePositiveInt(settings.Vs2QQReconnectIntervalSec, 5);
+        Vs2QQDatabasePath = NormalizeVs2QQDatabasePath(settings.Vs2QQDatabasePath);
+        Vs2QQPollIntervalSec = NormalizePositiveDouble(settings.Vs2QQPollIntervalSec, 1.0);
+        Vs2QQDefaultEncoding = NormalizeText(settings.Vs2QQDefaultEncoding, "utf-8");
+        Vs2QQFallbackEncoding = NormalizeText(settings.Vs2QQFallbackEncoding, "gbk");
+        Vs2QQSuperUsersText = string.Join(Environment.NewLine, (settings.Vs2QQSuperUsers ?? []).Select(x => x.ToString(CultureInfo.InvariantCulture)));
+    }
+
+    private LauncherSettings BuildLauncherSettingsSnapshot()
+    {
+        return new LauncherSettings
+        {
+            DataDirectory = NormalizeDirectory(LauncherDataDirectory, WorkspaceLayout.DefaultDataRoot),
+            SaveDirectory = NormalizeDirectory(LauncherSaveDirectory, WorkspaceLayout.DefaultSavesRoot),
+            AutoStartWithWindows = LaunchAtStartup,
+            Vs2QQOneBotWsUrl = NormalizeVs2QQWsUrl(Vs2QQOneBotWsUrl),
+            Vs2QQAccessToken = Vs2QQAccessToken?.Trim() ?? string.Empty,
+            Vs2QQReconnectIntervalSec = NormalizePositiveInt(Vs2QQReconnectIntervalSec, 5),
+            Vs2QQDatabasePath = NormalizeVs2QQDatabasePath(Vs2QQDatabasePath),
+            Vs2QQPollIntervalSec = NormalizePositiveDouble(Vs2QQPollIntervalSec, 1.0),
+            Vs2QQDefaultEncoding = NormalizeText(Vs2QQDefaultEncoding, "utf-8"),
+            Vs2QQFallbackEncoding = NormalizeText(Vs2QQFallbackEncoding, "gbk"),
+            Vs2QQSuperUsers = ParseSuperUsers(Vs2QQSuperUsersText)
+        };
+    }
+
+    private OperationResult ValidateVs2QQSettings()
+    {
+        var wsUrl = NormalizeVs2QQWsUrl(Vs2QQOneBotWsUrl);
+        if (!Uri.TryCreate(wsUrl, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeWs && uri.Scheme != Uri.UriSchemeWss))
+        {
+            return OperationResult.Failed("OneBot WS 地址无效，请使用 ws:// 或 wss://。");
+        }
+
+        var dbPath = NormalizeVs2QQDatabasePath(Vs2QQDatabasePath);
+        if (string.IsNullOrWhiteSpace(dbPath))
+        {
+            return OperationResult.Failed("数据库路径无效。");
+        }
+
+        var reconnect = NormalizePositiveInt(Vs2QQReconnectIntervalSec, 5);
+        if (reconnect < 1)
+        {
+            return OperationResult.Failed("重连间隔必须大于 0。");
+        }
+
+        var poll = NormalizePositiveDouble(Vs2QQPollIntervalSec, 1.0);
+        if (poll <= 0)
+        {
+            return OperationResult.Failed("轮询间隔必须大于 0。");
+        }
+
+        return OperationResult.Success();
+    }
+
+    private static List<long> ParseSuperUsers(string? rawText)
+    {
+        if (string.IsNullOrWhiteSpace(rawText))
+        {
+            return [];
+        }
+
+        var items = rawText
+            .Split(['\r', '\n', ',', ';', ' '], StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => long.TryParse(x, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) ? value : 0)
+            .Where(x => x > 0)
+            .Distinct()
+            .Order()
+            .ToList();
+
+        return items;
+    }
+
+    private static string NormalizeVs2QQWsUrl(string? value)
+    {
+        var normalized = NormalizeText(value, "ws://127.0.0.1:3001/");
+        return normalized;
+    }
+
+    private static string NormalizeVs2QQDatabasePath(string? value)
+    {
+        var raw = string.IsNullOrWhiteSpace(value)
+            ? Path.Combine(WorkspaceLayout.WorkspaceRoot, "vs2qq", "vs2qq.db")
+            : value.Trim();
+        try
+        {
+            if (!Path.IsPathRooted(raw))
+            {
+                raw = Path.Combine(WorkspaceLayout.WorkspaceRoot, raw);
+            }
+
+            return Path.GetFullPath(raw);
+        }
+        catch
+        {
+            return Path.Combine(WorkspaceLayout.WorkspaceRoot, "vs2qq", "vs2qq.db");
+        }
+    }
+
+    private static string ResolveVs2QQDatabaseDirectory(string? dbPath)
+    {
+        var normalized = NormalizeVs2QQDatabasePath(dbPath);
+        var directory = Path.GetDirectoryName(normalized);
+        if (!string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory))
+        {
+            return directory;
+        }
+
+        return WorkspaceLayout.WorkspaceRoot;
+    }
+
+    private static int NormalizePositiveInt(int value, int fallback)
+    {
+        return value <= 0 ? fallback : value;
+    }
+
+    private static double NormalizePositiveDouble(double value, double fallback)
+    {
+        if (double.IsNaN(value) || double.IsInfinity(value) || value <= 0)
+        {
+            return fallback;
+        }
+
+        return value;
+    }
+
+    private static string NormalizeText(string? value, string fallback)
+    {
+        return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+    }
+
     private static bool IsAutoStartEnabled()
     {
         try
@@ -1268,6 +1672,20 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         });
     }
 
+    private void OnVs2QQOutputReceived(object? sender, string line)
+    {
+        RunOnUi(() =>
+        {
+            Vs2QQConsoleLines.Add(line);
+            TrimVs2QQConsole();
+        });
+    }
+
+    private void OnVs2QQStatusChanged(object? sender, Vs2QQRuntimeStatus status)
+    {
+        RunOnUi(() => Vs2QQRuntimeStatus = status);
+    }
+
     private void OnLogTailLineReceived(object? sender, string line)
     {
         RunOnUi(() =>
@@ -1287,6 +1705,15 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         }
 
         RaiseConsoleCommandStates();
+    }
+
+    private void TrimVs2QQConsole()
+    {
+        const int maxLines = 3000;
+        while (Vs2QQConsoleLines.Count > maxLines)
+        {
+            Vs2QQConsoleLines.RemoveAt(0);
+        }
     }
 
     private static void RunOnUi(Action action)
@@ -1336,6 +1763,11 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         _saveLauncherSettingsCommand.RaiseCanExecuteChanged();
         _chooseLauncherDataDirectoryCommand.RaiseCanExecuteChanged();
         _chooseLauncherSaveDirectoryCommand.RaiseCanExecuteChanged();
+        _loadVs2QQConfigCommand.RaiseCanExecuteChanged();
+        _saveVs2QQConfigCommand.RaiseCanExecuteChanged();
+        _startVs2QQCommand.RaiseCanExecuteChanged();
+        _stopVs2QQCommand.RaiseCanExecuteChanged();
+        _chooseVs2QQDatabasePathCommand.RaiseCanExecuteChanged();
         RaiseConsoleCommandStates();
     }
 

@@ -1,0 +1,150 @@
+<UserControl x:Class="VSL.UI.Views.Pages.Vs2QQConfigPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             mc:Ignorable="d"
+             d:DesignHeight="860"
+             d:DesignWidth="1180">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="2,0,0,12">
+            <TextBlock Style="{DynamicResource VslPageTitleStyle}" Text="VS2QQ 配置" />
+            <TextBlock Style="{DynamicResource VslPageSubTitleStyle}" Text="完整可视化配置 OneBot 连接、数据库、轮询与超级用户。" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <ui:Card>
+                    <StackPanel>
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="OneBot 连接" />
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,8,8,0" VerticalAlignment="Center" Text="WS 地址" />
+                            <TextBox Grid.Row="0"
+                                     Grid.Column="1"
+                                     Height="32"
+                                     Margin="0,0,0,8"
+                                     Text="{Binding Vs2QQOneBotWsUrl, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,8,8,0" VerticalAlignment="Center" Text="Access Token" />
+                            <TextBox Grid.Row="1"
+                                     Grid.Column="1"
+                                     Height="32"
+                                     Margin="0,0,0,8"
+                                     Text="{Binding Vs2QQAccessToken, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,8,8,0" VerticalAlignment="Center" Text="重连间隔(秒)" />
+                            <TextBox Grid.Row="2"
+                                     Grid.Column="1"
+                                     Height="32"
+                                     Margin="0,0,0,8"
+                                     Text="{Binding Vs2QQReconnectIntervalSec, UpdateSourceTrigger=LostFocus}" />
+                        </Grid>
+                    </StackPanel>
+                </ui:Card>
+
+                <ui:Card>
+                    <StackPanel>
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="日志桥接" />
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,8,8,0" VerticalAlignment="Center" Text="数据库路径" />
+                            <TextBox Grid.Row="0"
+                                     Grid.Column="1"
+                                     Height="32"
+                                     Margin="0,0,0,8"
+                                     Text="{Binding Vs2QQDatabasePath, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button Grid.Row="0"
+                                    Grid.Column="2"
+                                    Height="32"
+                                    Margin="8,0,0,8"
+                                    Padding="10,0"
+                                    Content="选择文件"
+                                    Style="{StaticResource VslToolbarButtonStyle}"
+                                    Command="{Binding ChooseVs2QQDatabasePathCommand}" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,8,8,0" VerticalAlignment="Center" Text="轮询间隔(秒)" />
+                            <TextBox Grid.Row="1"
+                                     Grid.Column="1"
+                                     Height="32"
+                                     Margin="0,0,0,8"
+                                     Text="{Binding Vs2QQPollIntervalSec, UpdateSourceTrigger=LostFocus}" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,8,8,0" VerticalAlignment="Center" Text="默认编码" />
+                            <TextBox Grid.Row="2"
+                                     Grid.Column="1"
+                                     Height="32"
+                                     Margin="0,0,0,8"
+                                     Text="{Binding Vs2QQDefaultEncoding, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,8,8,0" VerticalAlignment="Center" Text="回退编码" />
+                            <TextBox Grid.Row="3"
+                                     Grid.Column="1"
+                                     Height="32"
+                                     Margin="0,0,0,8"
+                                     Text="{Binding Vs2QQFallbackEncoding, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
+                    </StackPanel>
+                </ui:Card>
+
+                <ui:Card>
+                    <StackPanel>
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="超级用户" />
+                        <TextBlock Margin="0,8,0,10"
+                                   Foreground="{DynamicResource VslMutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="每行一个 QQ 号。超级用户可在任意群执行管理员命令。"
+                                   />
+                        <TextBox MinHeight="120"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Text="{Binding Vs2QQSuperUsersText, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </ui:Card>
+
+                <ui:Card>
+                    <StackPanel>
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="操作" />
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <Button Content="重新加载"
+                                    Width="120"
+                                    Style="{StaticResource VslToolbarButtonStyle}"
+                                    Command="{Binding LoadVs2QQConfigCommand}" />
+                            <Button Content="保存配置"
+                                    Width="120"
+                                    Style="{StaticResource VslToolbarButtonStyle}"
+                                    Command="{Binding SaveVs2QQConfigCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ui:Card>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -21,6 +21,18 @@ dotnet build VSL.sln -c Release
 powershell -ExecutionPolicy Bypass -File .\scripts\package.ps1 -Version 1.0.0
 ```
 
+生成安装包（`setup.exe`）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\package.ps1 -Version 1.0.0 -CreateInstaller
+```
+
+说明：
+
+- `-CreateInstaller` 使用 Inno Setup 6 生成安装程序。
+- 需先安装 Inno Setup 6（`ISCC.exe`）。
+- 默认安装目录为 `%LocalAppData%\Programs\VSL`（无需管理员权限）。
+
 ## 关于
 
 - 作者：寒士杰克（HansJack）
