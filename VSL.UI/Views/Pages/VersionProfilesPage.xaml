@@ -31,6 +31,8 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
@@ -41,7 +43,7 @@
                                    Text="选择版本后可直接安装，或导入本地 ZIP 包" />
                     </StackPanel>
 
-                    <Border Grid.Row="1" Style="{DynamicResource VslActionBarHostStyle}">
+                    <Border Grid.Row="1" Margin="0,10,0,0" Style="{DynamicResource VslActionBarHostStyle}">
                         <WrapPanel>
                             <CheckBox Content="显示不稳定版 (RC)"
                                       IsChecked="{Binding IncludeUnstable}"
@@ -63,6 +65,125 @@
                                     Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding InstallSelectedReleaseCommand}" />
                         </WrapPanel>
                     </Border>
+
+                    <Border Grid.Row="2"
+                            Margin="0,10,0,0"
+                            Padding="10,8"
+                            CornerRadius="4"
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource VslPanelBorderBrush}"
+                            Background="#FFFFFFFF"
+                            Visibility="{Binding IsInstallProgressVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding InstallProgressText}" />
+                            <ProgressBar Minimum="0"
+                                         Maximum="100"
+                                         Height="10"
+                                         Margin="0,6,0,0"
+                                         Value="{Binding InstallProgress, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="3"
+                            Margin="0,8,0,0"
+                            Padding="10,8"
+                            CornerRadius="4"
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource VslPanelBorderBrush}"
+                            Background="#FFFFFFFF"
+                            Visibility="{Binding IsServerStartupProgressVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding ServerStartupProgressText}" />
+                            <ProgressBar Minimum="0"
+                                         Maximum="100"
+                                         Height="10"
+                                         Margin="0,6,0,0"
+                                         Value="{Binding ServerStartupProgress, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="4"
+                            Margin="0,10,0,0"
+                            Padding="10"
+                            CornerRadius="4"
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource VslPanelBorderBrush}"
+                            Background="#FFFFFFFF">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <WrapPanel Grid.Row="0" Margin="0,0,0,8">
+                                <TextBlock Text="已安装版本"
+                                           VerticalAlignment="Center"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,10,8" />
+                                <Button Content="刷新已安装"
+                                        Style="{StaticResource VslToolbarButtonStyle}"
+                                        Command="{Binding RefreshInstalledVersionsCommand}" />
+                                <Button Content="删除选中版本"
+                                        Style="{StaticResource VslToolbarButtonStyle}"
+                                        Command="{Binding DeleteSelectedInstalledVersionCommand}" />
+                            </WrapPanel>
+
+                            <Grid Grid.Row="1">
+                                <ListView x:Name="InstalledVersionsList"
+                                          Style="{StaticResource VslListViewStyle}"
+                                          ItemContainerStyle="{StaticResource VslListViewItemStyle}"
+                                          ItemsSource="{Binding InstalledVersions}"
+                                          SelectedItem="{Binding SelectedInstalledVersion}">
+                                    <ListView.Resources>
+                                        <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource VslGridViewHeaderStyle}" />
+                                        <Style TargetType="ListViewItem" BasedOn="{StaticResource VslListViewItemStyle}" />
+                                    </ListView.Resources>
+                                    <ListView.View>
+                                        <GridView ColumnHeaderContainerStyle="{StaticResource VslGridViewHeaderStyle}">
+                                            <GridViewColumn Header="版本" Width="180">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                                   Text="{Binding Version}" />
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Header="安装目录" Width="620">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                                   Text="{Binding InstallPath}"
+                                                                   ToolTip="{Binding InstallPath}" />
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Header="使用情况" Width="180">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Style="{StaticResource VslTableCellTextStyle}"
+                                                                   Text="{Binding UsageText}" />
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+
+                                <TextBlock Text="尚无已安装版本，安装后会自动出现在此列表。">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource VslEmptyHintStyle}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=InstalledVersionsList, Path=HasItems}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                        </Grid>
+                    </Border>
                 </Grid>
             </ui:Card>
 
@@ -81,7 +202,7 @@
                                    Text="一个档案对应一套 dataPath 和配置" />
                     </StackPanel>
 
-                    <Border Grid.Row="1" Style="{DynamicResource VslActionBarHostStyle}">
+                    <Border Grid.Row="1" Margin="0,10,0,0" Style="{DynamicResource VslActionBarHostStyle}">
                         <WrapPanel>
                             <TextBlock Text="新档案名" VerticalAlignment="Center" Margin="0,0,8,8" />
                             <TextBox Width="210"

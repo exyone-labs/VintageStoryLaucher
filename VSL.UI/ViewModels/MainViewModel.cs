@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Microsoft.Win32;
 using VSL.Application;
 using VSL.Domain;
@@ -29,11 +30,14 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     private readonly IVs2QQProcessService _vs2qqProcessService;
     private readonly ILogTailService _logTailService;
     private readonly ISnackbarService _snackbarService;
+    private readonly DispatcherTimer _versionListsAutoRefreshTimer;
 
     private readonly AsyncRelayCommand _toggleSelectedModCommand;
+    private readonly AsyncRelayCommand _refreshInstalledVersionsCommand;
     private readonly AsyncRelayCommand _installSelectedReleaseCommand;
     private readonly AsyncRelayCommand _createProfileCommand;
     private readonly AsyncRelayCommand _deleteProfileCommand;
+    private readonly AsyncRelayCommand _deleteSelectedInstalledVersionCommand;
     private readonly AsyncRelayCommand _startServerCommand;
     private readonly AsyncRelayCommand _stopServerCommand;
     private readonly AsyncRelayCommand _sendConsoleCommand;
@@ -52,10 +56,15 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
 
     private bool _includeUnstable;
     private bool _isBusy;
+    private bool _isInstallProgressVisible;
+    private bool _isServerStartupProgressVisible;
+    private bool _isAutoRefreshingVersionLists;
     private string _busyText = string.Empty;
     private string _lastMessage = string.Empty;
     private double _installProgress;
+    private double _serverStartupProgress;
     private ServerRelease? _selectedRelease;
+    private InstalledVersionItemViewModel? _selectedInstalledVersion;
     private ServerProfile? _selectedProfile;
     private SaveFileEntry? _selectedSave;
     private ModEntry? _selectedMod;
@@ -126,6 +135,10 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         ImportLocalServerZipCommand = new AsyncRelayCommand(ImportLocalServerZipAsync);
         _installSelectedReleaseCommand = new AsyncRelayCommand(InstallSelectedReleaseAsync, () => SelectedRelease is not null);
         InstallSelectedReleaseCommand = _installSelectedReleaseCommand;
+        _refreshInstalledVersionsCommand = new AsyncRelayCommand(RefreshInstalledVersionsWithBusyAsync, () => !IsBusy);
+        RefreshInstalledVersionsCommand = _refreshInstalledVersionsCommand;
+        _deleteSelectedInstalledVersionCommand = new AsyncRelayCommand(DeleteSelectedInstalledVersionAsync, () => SelectedInstalledVersion is not null && !IsBusy);
+        DeleteSelectedInstalledVersionCommand = _deleteSelectedInstalledVersionCommand;
 
         RefreshProfilesCommand = new AsyncRelayCommand(RefreshProfilesAsync);
         _createProfileCommand = new AsyncRelayCommand(CreateProfileAsync, () => SelectedRelease is not null && !string.IsNullOrWhiteSpace(NewProfileName));
@@ -186,9 +199,18 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         _vs2qqProcessService.OutputReceived += OnVs2QQOutputReceived;
         _vs2qqProcessService.StatusChanged += OnVs2QQStatusChanged;
         _logTailService.LogLineReceived += OnLogTailLineReceived;
+
+        _versionListsAutoRefreshTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(5)
+        };
+        _versionListsAutoRefreshTimer.Tick += VersionListsAutoRefreshTimerOnTick;
+        _versionListsAutoRefreshTimer.Start();
     }
 
     public ObservableCollection<ServerRelease> Releases { get; } = [];
+
+    public ObservableCollection<InstalledVersionItemViewModel> InstalledVersions { get; } = [];
 
     public ObservableCollection<ServerProfile> Profiles { get; } = [];
 
@@ -207,6 +229,10 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     public ICommand ImportLocalServerZipCommand { get; }
 
     public ICommand InstallSelectedReleaseCommand { get; }
+
+    public ICommand RefreshInstalledVersionsCommand { get; }
+
+    public ICommand DeleteSelectedInstalledVersionCommand { get; }
 
     public ICommand RefreshProfilesCommand { get; }
 
@@ -295,7 +321,71 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     public double InstallProgress
     {
         get => _installProgress;
-        private set => SetProperty(ref _installProgress, value);
+        private set
+        {
+            if (SetProperty(ref _installProgress, value))
+            {
+                OnPropertyChanged(nameof(InstallProgressText));
+            }
+        }
+    }
+
+    public bool IsInstallProgressVisible
+    {
+        get => _isInstallProgressVisible;
+        private set
+        {
+            if (SetProperty(ref _isInstallProgressVisible, value))
+            {
+                OnPropertyChanged(nameof(InstallProgressText));
+            }
+        }
+    }
+
+    public string InstallProgressText =>
+        IsInstallProgressVisible
+            ? $"安装进度：{InstallProgress:0}%"
+            : string.Empty;
+
+    public bool IsServerStartupProgressVisible
+    {
+        get => _isServerStartupProgressVisible;
+        private set
+        {
+            if (SetProperty(ref _isServerStartupProgressVisible, value))
+            {
+                OnPropertyChanged(nameof(ServerStartupProgressText));
+            }
+        }
+    }
+
+    public double ServerStartupProgress
+    {
+        get => _serverStartupProgress;
+        private set
+        {
+            if (SetProperty(ref _serverStartupProgress, value))
+            {
+                OnPropertyChanged(nameof(ServerStartupProgressText));
+            }
+        }
+    }
+
+    public string ServerStartupProgressText =>
+        IsServerStartupProgressVisible
+            ? $"启动进度：{ServerStartupProgress:0}%"
+            : string.Empty;
+
+    public InstalledVersionItemViewModel? SelectedInstalledVersion
+    {
+        get => _selectedInstalledVersion;
+        set
+        {
+            if (SetProperty(ref _selectedInstalledVersion, value))
+            {
+                UpdateCommandStates();
+            }
+        }
     }
 
     public ServerRelease? SelectedRelease
@@ -422,7 +512,14 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     public string SelectedNavKey
     {
         get => _selectedNavKey;
-        set => SetProperty(ref _selectedNavKey, value);
+        set
+        {
+            if (SetProperty(ref _selectedNavKey, value)
+                && string.Equals(value, "versionprofile", StringComparison.OrdinalIgnoreCase))
+            {
+                _ = AutoRefreshVersionListsAsync();
+            }
+        }
     }
 
     public bool IsConsoleAutoFollow
@@ -569,10 +666,14 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         Vs2QQRuntimeStatus = _vs2qqProcessService.CurrentStatus;
         await RefreshReleasesAsync();
         await RefreshProfilesAsync();
+        await RefreshInstalledVersionsCoreAsync(showMessage: false);
     }
 
     public async ValueTask DisposeAsync()
     {
+        _versionListsAutoRefreshTimer.Tick -= VersionListsAutoRefreshTimerOnTick;
+        _versionListsAutoRefreshTimer.Stop();
+
         _serverProcessService.OutputReceived -= OnProcessOutputReceived;
         _serverProcessService.StatusChanged -= OnProcessStatusChanged;
         _vs2qqProcessService.OutputReceived -= OnVs2QQOutputReceived;
@@ -585,21 +686,34 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
 
     private async Task RefreshReleasesAsync()
     {
-        await RunBusyAsync("正在刷新版本列表...", async () =>
+        await RunBusyAsync("正在刷新版本列表...", () => RefreshReleasesCoreAsync(showMessage: true));
+    }
+
+    private async Task RefreshReleasesCoreAsync(bool showMessage)
+    {
+        var official = await _versionCatalogService.GetOfficialReleasesAsync();
+        var locals = await _versionCatalogService.GetLocalReleasesAsync();
+        var filteredOfficial = official.Where(x => IncludeUnstable || x.Channel == ReleaseChannel.Stable);
+        var merged = filteredOfficial.Concat(locals).ToList();
+
+        UpdateCollection(Releases, merged);
+        await RefreshInstalledVersionsCoreAsync(showMessage: false);
+
+        if (SelectedRelease is not null)
         {
-            var official = await _versionCatalogService.GetOfficialReleasesAsync();
-            var locals = await _versionCatalogService.GetLocalReleasesAsync();
-            var filteredOfficial = official.Where(x => IncludeUnstable || x.Channel == ReleaseChannel.Stable);
-            var merged = filteredOfficial.Concat(locals).ToList();
+            SelectedRelease = Releases.FirstOrDefault(x => x.Version == SelectedRelease.Version && x.Source == SelectedRelease.Source)
+                ?? Releases.FirstOrDefault(x => x.Version == SelectedRelease.Version)
+                ?? Releases.FirstOrDefault();
+        }
+        else if (Releases.Count > 0)
+        {
+            SelectedRelease = Releases[0];
+        }
 
-            UpdateCollection(Releases, merged);
-            if (SelectedRelease is null && Releases.Count > 0)
-            {
-                SelectedRelease = Releases[0];
-            }
-
+        if (showMessage)
+        {
             SetMessage($"已加载版本：{Releases.Count} 个。");
-        });
+        }
     }
 
     private async Task ImportLocalServerZipAsync()
@@ -614,20 +728,30 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
             return;
         }
 
-        await RunBusyAsync("正在导入本地版本包...", async () =>
+        IsInstallProgressVisible = true;
+        InstallProgress = 0;
+        try
         {
-            var progress = new Progress<double>(v => InstallProgress = v * 100.0);
-            var result = await _packageService.ImportLocalZipAsync(dialog.FileName, progress);
-            if (!result.IsSuccess)
+            await RunBusyAsync("正在导入本地版本包...", async () =>
             {
-                SetMessage(result.Message ?? "导入失败。");
-                return;
-            }
+                var progress = new Progress<double>(v => InstallProgress = v * 100.0);
+                var result = await _packageService.ImportLocalZipAsync(dialog.FileName, progress);
+                if (!result.IsSuccess)
+                {
+                    SetMessage(result.Message ?? "导入失败。");
+                    return;
+                }
 
-            SetMessage($"已导入本地版本：{result.Value!.Version}");
-            await RefreshReleasesAsync();
-            SelectedRelease = Releases.FirstOrDefault(x => x.Version == result.Value!.Version && x.Source == ReleaseSource.LocalImport) ?? SelectedRelease;
-        });
+                SetMessage($"已导入本地版本：{result.Value!.Version}");
+                await RefreshReleasesCoreAsync(showMessage: false);
+                SelectedRelease = Releases.FirstOrDefault(x => x.Version == result.Value!.Version && x.Source == ReleaseSource.LocalImport)
+                    ?? SelectedRelease;
+            });
+        }
+        finally
+        {
+            IsInstallProgressVisible = false;
+        }
     }
 
     private async Task InstallSelectedReleaseAsync()
@@ -637,52 +761,144 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
             return;
         }
 
-        await RunBusyAsync($"正在安装版本 {SelectedRelease.Version}...", async () =>
+        IsInstallProgressVisible = true;
+        InstallProgress = 0;
+        try
         {
-            InstallProgress = 0;
-            var progress = new Progress<double>(v => InstallProgress = v * 100.0);
-            var result = await _packageService.InstallReleaseAsync(SelectedRelease, progress);
-            SetMessage(result.IsSuccess
-                ? $"版本安装完成: {SelectedRelease.Version}"
-                : result.Message ?? "安装失败。");
-            await RefreshReleasesAsync();
+            await RunBusyAsync($"正在安装版本 {SelectedRelease.Version}...", async () =>
+            {
+                InstallProgress = 3;
+                var progress = new Progress<double>(v => InstallProgress = v * 100.0);
+                var result = await _packageService.InstallReleaseAsync(SelectedRelease, progress);
+                if (result.IsSuccess)
+                {
+                    InstallProgress = 100;
+                }
+
+                SetMessage(result.IsSuccess
+                    ? $"版本安装完成: {SelectedRelease.Version}"
+                    : result.Message ?? "安装失败。");
+                await RefreshReleasesCoreAsync(showMessage: false);
+            });
+        }
+        finally
+        {
+            IsInstallProgressVisible = false;
+        }
+    }
+
+    private async Task RefreshInstalledVersionsWithBusyAsync()
+    {
+        await RunBusyAsync("正在刷新已安装版本...", () => RefreshInstalledVersionsCoreAsync(showMessage: true));
+    }
+
+    private async Task RefreshInstalledVersionsCoreAsync(bool showMessage)
+    {
+        var installedVersions = await _packageService.GetInstalledVersionsAsync();
+        var profileUsageLookup = Profiles
+            .GroupBy(x => x.Version, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(x => x.Key, x => x.Count(), StringComparer.OrdinalIgnoreCase);
+
+        var items = installedVersions
+            .Select(version =>
+            {
+                profileUsageLookup.TryGetValue(version, out var profileCount);
+                return new InstalledVersionItemViewModel
+                {
+                    Version = version,
+                    InstallPath = _packageService.GetInstallPath(version),
+                    ProfileCount = profileCount
+                };
+            })
+            .OrderByDescending(x => x.Version, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        UpdateCollection(InstalledVersions, items);
+
+        if (SelectedInstalledVersion is not null)
+        {
+            SelectedInstalledVersion = InstalledVersions.FirstOrDefault(x => string.Equals(x.Version, SelectedInstalledVersion.Version, StringComparison.OrdinalIgnoreCase));
+        }
+        else if (InstalledVersions.Count > 0)
+        {
+            SelectedInstalledVersion = InstalledVersions[0];
+        }
+
+        if (showMessage)
+        {
+            SetMessage($"已安装版本：{InstalledVersions.Count} 个。");
+        }
+    }
+
+    private async Task DeleteSelectedInstalledVersionAsync()
+    {
+        if (SelectedInstalledVersion is null)
+        {
+            return;
+        }
+
+        var version = SelectedInstalledVersion.Version;
+        var profilesUsingVersion = Profiles.Where(x => string.Equals(x.Version, version, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (profilesUsingVersion.Count > 0)
+        {
+            SetMessage($"无法删除 {version}：仍有 {profilesUsingVersion.Count} 个档案在使用该版本。");
+            return;
+        }
+
+        if (MessageBox.Show(
+                $"确认删除已安装版本“{version}”？\n目录：{SelectedInstalledVersion.InstallPath}",
+                "确认删除版本",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        await RunBusyAsync($"正在删除版本 {version}...", async () =>
+        {
+            var result = await _packageService.DeleteInstalledVersionAsync(version);
+            SetMessage(result.IsSuccess ? $"已删除版本：{version}" : result.Message ?? "删除版本失败。");
+            await RefreshInstalledVersionsCoreAsync(showMessage: false);
+            await RefreshReleasesCoreAsync(showMessage: false);
         });
     }
 
     private async Task RefreshProfilesAsync()
     {
+        await RunBusyAsync("正在加载档案...", () => RefreshProfilesCoreAsync(showMessage: true));
+    }
+
+    private async Task RefreshProfilesCoreAsync(bool showMessage)
+    {
+        var profiles = await _profileService.GetProfilesAsync();
+        var previousSelectedId = SelectedProfile?.Id;
+
+        UpdateCollection(Profiles, profiles);
+
         ServerProfile? profileToSelect = null;
-
-        await RunBusyAsync("正在加载档案...", async () =>
+        if (Profiles.Count > 0)
         {
-            var profiles = await _profileService.GetProfilesAsync();
-            UpdateCollection(Profiles, profiles);
-
-            if (Profiles.Count == 0)
-            {
-                profileToSelect = null;
-            }
-            else if (SelectedProfile is not null)
-            {
-                profileToSelect = Profiles.FirstOrDefault(x => x.Id == SelectedProfile.Id) ?? Profiles[0];
-            }
-            else
-            {
-                profileToSelect = Profiles[0];
-            }
-
-            SetMessage($"档案数量：{Profiles.Count}");
-        });
+            profileToSelect = !string.IsNullOrWhiteSpace(previousSelectedId)
+                ? Profiles.FirstOrDefault(x => string.Equals(x.Id, previousSelectedId, StringComparison.Ordinal))
+                : Profiles[0];
+            profileToSelect ??= Profiles[0];
+        }
 
         if (Profiles.Count == 0)
         {
             SelectedProfile = null;
-            return;
         }
-
-        if (profileToSelect is not null && (SelectedProfile is null || !string.Equals(SelectedProfile.Id, profileToSelect.Id, StringComparison.Ordinal)))
+        else if (profileToSelect is not null
+                 && (SelectedProfile is null || !string.Equals(SelectedProfile.Id, profileToSelect.Id, StringComparison.Ordinal)))
         {
             SelectedProfile = profileToSelect;
+        }
+
+        await RefreshInstalledVersionsCoreAsync(showMessage: false);
+
+        if (showMessage)
+        {
+            SetMessage($"档案数量：{Profiles.Count}");
         }
     }
 
@@ -702,7 +918,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
                 return;
             }
 
-            await RefreshProfilesAsync();
+            await RefreshProfilesCoreAsync(showMessage: false);
             SelectedProfile = Profiles.FirstOrDefault(x => x.Id == result.Value.Id);
             SetMessage($"档案创建成功：{result.Value.Name}");
         });
@@ -725,7 +941,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
             var result = await _profileService.DeleteProfileAsync(SelectedProfile.Id);
             SetMessage(result.IsSuccess ? "档案已删除。" : result.Message ?? "删除失败。");
             SelectedProfile = null;
-            await RefreshProfilesAsync();
+            await RefreshProfilesCoreAsync(showMessage: false);
         });
     }
 
@@ -1250,36 +1466,52 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
             return;
         }
 
+        IsServerStartupProgressVisible = true;
+        ServerStartupProgress = 5;
+
         var installPath = _packageService.GetInstallPath(SelectedProfile.Version);
         var serverExe = Path.Combine(installPath, "VintagestoryServer.exe");
         if (!File.Exists(serverExe))
         {
             var hint = $"未找到服务端程序：{serverExe}\n请先安装档案对应版本。";
             SetMessage(hint);
+            IsServerStartupProgressVisible = false;
+            ServerStartupProgress = 0;
             return;
         }
 
-        await RunBusyAsync("正在启动服务器...", async () =>
+        try
         {
-            var result = await _serverProcessService.StartAsync(SelectedProfile);
-            if (result.IsSuccess)
+            await RunBusyAsync("正在启动服务器...", async () =>
             {
-                SetMessage("服务器已启动。");
-            }
-            else
-            {
-                var detail = BuildErrorMessage("启动服务器失败。", result.Message, result.Exception);
-                ConsoleLines.Add($"[system] {detail}");
-                TrimConsole();
-                SetMessage(detail);
-                return;
-            }
+                ServerStartupProgress = 25;
+                var result = await _serverProcessService.StartAsync(SelectedProfile);
+                if (result.IsSuccess)
+                {
+                    ServerStartupProgress = 75;
+                    SetMessage("服务器已启动。");
+                }
+                else
+                {
+                    var detail = BuildErrorMessage("启动服务器失败。", result.Message, result.Exception);
+                    ConsoleLines.Add($"[system] {detail}");
+                    TrimConsole();
+                    SetMessage(detail);
+                    ServerStartupProgress = 0;
+                    return;
+                }
 
-            if (result.IsSuccess)
-            {
-                await _logTailService.StartAsync(SelectedProfile);
-            }
-        });
+                if (result.IsSuccess)
+                {
+                    await _logTailService.StartAsync(SelectedProfile);
+                    ServerStartupProgress = 100;
+                }
+            });
+        }
+        finally
+        {
+            IsServerStartupProgressVisible = false;
+        }
     }
 
     private async Task StopServerAsync()
@@ -1289,6 +1521,8 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
             var result = await _serverProcessService.StopAsync(TimeSpan.FromSeconds(12));
             await _logTailService.StopAsync();
             SetMessage(result.IsSuccess ? result.Message ?? "服务器已停止。" : result.Message ?? "停止服务器失败。");
+            IsServerStartupProgressVisible = false;
+            ServerStartupProgress = 0;
         });
     }
 
@@ -1340,6 +1574,38 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         catch (Exception ex)
         {
             SetMessage($"下载日志失败: {ex.Message}");
+        }
+    }
+
+    private async void VersionListsAutoRefreshTimerOnTick(object? sender, EventArgs e)
+    {
+        if (!string.Equals(SelectedNavKey, "versionprofile", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        await AutoRefreshVersionListsAsync();
+    }
+
+    private async Task AutoRefreshVersionListsAsync()
+    {
+        if (_isAutoRefreshingVersionLists || IsBusy)
+        {
+            return;
+        }
+
+        _isAutoRefreshingVersionLists = true;
+        try
+        {
+            await RefreshProfilesCoreAsync(showMessage: false);
+        }
+        catch
+        {
+            // Automatic refresh should never interrupt user operations.
+        }
+        finally
+        {
+            _isAutoRefreshingVersionLists = false;
         }
     }
 
@@ -1665,9 +1931,16 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
         RunOnUi(() =>
         {
             RuntimeStatus = status;
+            if (status.IsRunning)
+            {
+                ServerStartupProgress = 100;
+                IsServerStartupProgressVisible = false;
+            }
             if (!status.IsRunning)
             {
                 _ = _logTailService.StopAsync();
+                ServerStartupProgress = 0;
+                IsServerStartupProgressVisible = false;
             }
         });
     }
@@ -1729,7 +2002,9 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
 
     private void UpdateCommandStates()
     {
+        _refreshInstalledVersionsCommand.RaiseCanExecuteChanged();
         _installSelectedReleaseCommand.RaiseCanExecuteChanged();
+        _deleteSelectedInstalledVersionCommand.RaiseCanExecuteChanged();
         _createProfileCommand.RaiseCanExecuteChanged();
         _deleteProfileCommand.RaiseCanExecuteChanged();
         _saveCommonConfigCommand.RaiseCanExecuteChanged();

@@ -8,6 +8,10 @@ public interface IPackageService
 
     string GetInstallPath(string version);
 
+    Task<IReadOnlyList<string>> GetInstalledVersionsAsync(CancellationToken cancellationToken = default);
+
+    Task<OperationResult> DeleteInstalledVersionAsync(string version, CancellationToken cancellationToken = default);
+
     Task<OperationResult<string>> InstallReleaseAsync(
         ServerRelease release,
         IProgress<double>? progress = null,

@@ -17,6 +17,50 @@ public sealed class PackageService(HttpClient httpClient, IVersionCatalogService
         return WorkspaceLayout.GetServerInstallPath(version);
     }
 
+    public Task<IReadOnlyList<string>> GetInstalledVersionsAsync(CancellationToken cancellationToken = default)
+    {
+        WorkspaceLayout.EnsureWorkspaceExists();
+        if (!Directory.Exists(WorkspaceLayout.ServersRoot))
+        {
+            return Task.FromResult<IReadOnlyList<string>>([]);
+        }
+
+        var versions = Directory
+            .GetDirectories(WorkspaceLayout.ServersRoot)
+            .Select(static x => Path.GetFileName(x))
+            .Where(static x => !string.IsNullOrWhiteSpace(x))
+            .Select(static x => x!)
+            .OrderByDescending(static x => x, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<string>>(versions);
+    }
+
+    public Task<OperationResult> DeleteInstalledVersionAsync(string version, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            WorkspaceLayout.EnsureWorkspaceExists();
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                return Task.FromResult(OperationResult.Failed("版本号不能为空。"));
+            }
+
+            var installPath = WorkspaceLayout.GetServerInstallPath(version.Trim());
+            if (!Directory.Exists(installPath))
+            {
+                return Task.FromResult(OperationResult.Failed($"未找到已安装版本目录：{installPath}"));
+            }
+
+            Directory.Delete(installPath, recursive: true);
+            return Task.FromResult(OperationResult.Success($"已删除版本：{version}"));
+        }
+        catch (Exception ex)
+        {
+            return Task.FromResult(OperationResult.Failed("删除已安装版本失败。", ex));
+        }
+    }
+
     public async Task<OperationResult<string>> InstallReleaseAsync(
         ServerRelease release,
         IProgress<double>? progress = null,
