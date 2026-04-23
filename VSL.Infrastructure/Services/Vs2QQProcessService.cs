@@ -306,7 +306,14 @@ public sealed class Vs2QQProcessService : IVs2QQProcessService
         catch (Exception ex)
         {
             EmitOutput($"[warn] 命令处理异常: {ex.Message}");
-            await ReplyAsync(runtime, eventPayload, $"Command error: {ex.Message}", cancellationToken);
+            try
+            {
+                await ReplyAsync(runtime, eventPayload, $"Command error: {ex.Message}", cancellationToken);
+            }
+            catch (Exception replyEx)
+            {
+                EmitOutput($"[warn] 命令异常回包失败: {replyEx.Message}");
+            }
         }
     }
 
@@ -801,7 +808,7 @@ public sealed class Vs2QQProcessService : IVs2QQProcessService
                 ["message"] = message
             };
 
-            await CallActionAsync("send_group_msg", parameters, TimeSpan.FromSeconds(10), cancellationToken);
+            await CallActionAsync("send_group_msg", parameters, TimeSpan.FromSeconds(20), cancellationToken);
         }
 
         public async Task SendPrivateMsgAsync(long userId, string message, CancellationToken cancellationToken)
@@ -812,7 +819,7 @@ public sealed class Vs2QQProcessService : IVs2QQProcessService
                 ["message"] = message
             };
 
-            await CallActionAsync("send_private_msg", parameters, TimeSpan.FromSeconds(10), cancellationToken);
+            await CallActionAsync("send_private_msg", parameters, TimeSpan.FromSeconds(20), cancellationToken);
         }
 
         public async Task<JsonNode?> CallActionAsync(
@@ -844,7 +851,9 @@ public sealed class Vs2QQProcessService : IVs2QQProcessService
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!ReferenceEquals(completed, waiter.Task))
                 {
-                    throw new TimeoutException($"OneBot action timeout: {action}");
+                    throw new TimeoutException(
+                        $"OneBot action timeout: {action}. " +
+                        "未收到动作回包，请检查 OneBot WS 地址/AccessToken/协议版本是否匹配。");
                 }
 
                 var response = await waiter.Task;
@@ -972,7 +981,14 @@ public sealed class Vs2QQProcessService : IVs2QQProcessService
 
                 if (payload["post_type"] is not null)
                 {
-                    await _eventHandler(payload, cancellationToken);
+                    try
+                    {
+                        await _eventHandler(payload, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _log($"[warn] OneBot 事件处理异常: {ex.Message}");
+                    }
                 }
             }
         }
