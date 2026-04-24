@@ -8,6 +8,7 @@ artifacts/
 TestResults/
 *.trx
 *.tmp
+.tmp_gamedata.bin
 *.log
 tmpsnackbar/
 tmp_*/
