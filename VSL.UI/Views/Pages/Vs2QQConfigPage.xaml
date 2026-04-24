@@ -14,15 +14,15 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="2,0,0,12">
-            <TextBlock Style="{DynamicResource VslPageTitleStyle}" Text="VS2QQ 配置" />
-            <TextBlock Style="{DynamicResource VslPageSubTitleStyle}" Text="完整可视化配置 OneBot 连接、数据库、轮询与超级用户。" />
+            <TextBlock Style="{DynamicResource VslPageTitleStyle}" Text="机器人配置" />
+            <TextBlock Style="{DynamicResource VslPageSubTitleStyle}" Text="配置机器人连接、数据库和超级用户。" />
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <ui:Card>
                     <StackPanel>
-                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="OneBot 连接" />
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="机器人连接" />
                         <Grid Margin="0,12,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="140" />
@@ -60,7 +60,7 @@
 
                 <ui:Card>
                     <StackPanel>
-                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="日志桥接" />
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="日志设置" />
                         <Grid Margin="0,12,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="140" />
@@ -119,7 +119,7 @@
                         <TextBlock Margin="0,8,0,10"
                                    Foreground="{DynamicResource VslMutedTextBrush}"
                                    TextWrapping="Wrap"
-                                   Text="每行一个 QQ 号。超级用户可在任意群执行管理员命令。"
+                                   Text="每行一个 QQ 号，可在任意群执行管理命令。"
                                    />
                         <TextBox MinHeight="120"
                                  AcceptsReturn="True"

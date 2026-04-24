@@ -662,7 +662,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
 
     public string Vs2QQRuntimeStateText =>
         Vs2QQRuntimeStatus.IsRunning
-            ? $"运行中 (OneBot: {Vs2QQRuntimeStatus.OneBotWsUrl}, 启动时间: {Vs2QQRuntimeStatus.StartedAtUtc?.ToLocalTime():yyyy-MM-dd HH:mm:ss})"
+            ? $"运行中 (WS: {Vs2QQRuntimeStatus.OneBotWsUrl}, 启动: {Vs2QQRuntimeStatus.StartedAtUtc?.ToLocalTime():yyyy-MM-dd HH:mm:ss})"
             : "未运行";
 
     public string MapPreviewSummary
@@ -1327,7 +1327,7 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
     {
         var dialog = new OpenFileDialog
         {
-            Title = "选择 VS2QQ 数据库文件",
+            Title = "选择机器人数据库文件",
             InitialDirectory = ResolveVs2QQDatabaseDirectory(Vs2QQDatabasePath),
             Filter = "SQLite 数据库 (*.db;*.sqlite)|*.db;*.sqlite|所有文件 (*.*)|*.*",
             CheckFileExists = false
@@ -1349,17 +1349,17 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
 
         var settings = await _launcherSettingsService.LoadAsync();
         ApplyVs2QQSettings(settings);
-        SetMessage("VS2QQ 配置已加载。");
+        SetMessage("机器人配置已加载。");
     }
 
     private async Task SaveVs2QQConfigAsync()
     {
-        await RunBusyAsync("正在保存 VS2QQ 配置...", async () =>
+        await RunBusyAsync("正在保存机器人配置...", async () =>
         {
             var validationResult = ValidateVs2QQSettings();
             if (!validationResult.IsSuccess)
             {
-                SetMessage(validationResult.Message ?? "VS2QQ 配置无效。");
+                SetMessage(validationResult.Message ?? "机器人配置无效。");
                 return;
             }
 
@@ -1367,22 +1367,22 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
 
             if (!persistResult.IsSuccess)
             {
-                SetMessage(persistResult.Message ?? "保存 VS2QQ 配置失败。");
+                SetMessage(persistResult.Message ?? "保存机器人配置失败。");
                 return;
             }
 
-            SetMessage("VS2QQ 配置已保存。");
+            SetMessage("机器人配置已保存。");
         });
     }
 
     private async Task StartVs2QQAsync()
     {
-        await RunBusyAsync("正在启动 VS2QQ...", async () =>
+        await RunBusyAsync("正在启动机器人...", async () =>
         {
             var validationResult = ValidateVs2QQSettings();
             if (!validationResult.IsSuccess)
             {
-                SetMessage(validationResult.Message ?? "VS2QQ 配置无效。");
+                SetMessage(validationResult.Message ?? "机器人配置无效。");
                 return;
             }
 
@@ -1407,23 +1407,23 @@ public sealed class MainViewModel : ObservableObject, IAsyncDisposable
 
             if (!result.IsSuccess)
             {
-                var detail = BuildErrorMessage("启动 VS2QQ 失败。", result.Message, result.Exception);
+                var detail = BuildErrorMessage("启动机器人失败。", result.Message, result.Exception);
                 Vs2QQConsoleLines.Add($"[system] {detail}");
                 TrimVs2QQConsole();
                 SetMessage(detail);
                 return;
             }
 
-            SetMessage("VS2QQ 已启动。");
+            SetMessage("机器人已启动。");
         });
     }
 
     private async Task StopVs2QQAsync()
     {
-        await RunBusyAsync("正在停止 VS2QQ...", async () =>
+        await RunBusyAsync("正在停止机器人...", async () =>
         {
             var result = await _vs2qqProcessService.StopAsync(TimeSpan.FromSeconds(6));
-            SetMessage(result.IsSuccess ? result.Message ?? "VS2QQ 已停止。" : result.Message ?? "停止 VS2QQ 失败。");
+            SetMessage(result.IsSuccess ? result.Message ?? "机器人已停止。" : result.Message ?? "停止机器人失败。");
         });
     }
 

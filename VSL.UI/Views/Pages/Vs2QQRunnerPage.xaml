@@ -14,8 +14,8 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="2,0,0,12">
-            <TextBlock Style="{DynamicResource VslPageTitleStyle}" Text="VS2QQ 启动与日志" />
-            <TextBlock Style="{DynamicResource VslPageSubTitleStyle}" Text="启动/停止桥接进程，并实时查看 OneBot 与日志转发输出。" />
+            <TextBlock Style="{DynamicResource VslPageTitleStyle}" Text="机器人运行" />
+            <TextBlock Style="{DynamicResource VslPageSubTitleStyle}" Text="启动/停止机器人，实时查看日志。" />
         </StackPanel>
 
         <ui:Card Grid.Row="1">
@@ -34,10 +34,10 @@
                             </Grid.ColumnDefinitions>
 
                             <WrapPanel Grid.Column="0">
-                                <Button Content="启动 VS2QQ"
+                                <Button Content="启动机器人"
                                         Style="{StaticResource VslToolbarButtonStyle}"
                                         Command="{Binding StartVs2QQCommand}" />
-                                <Button Content="停止 VS2QQ"
+                                <Button Content="停止机器人"
                                         Style="{StaticResource VslToolbarButtonStyle}"
                                         Command="{Binding StopVs2QQCommand}" />
                             </WrapPanel>

@@ -135,7 +135,7 @@
                                 <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="PuzzleCube20" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
-                        <ui:NavigationViewItem x:Name="NavVs2QQConfig" Content="VS2QQ 配置" Tag="vs2qqconfig" Click="NavigationItem_OnClick">
+                        <ui:NavigationViewItem x:Name="NavVs2QQConfig" Content="机器人配置" Tag="vs2qqconfig" Click="NavigationItem_OnClick">
                             <ui:NavigationViewItem.Icon>
                                 <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="Bot20" />
                             </ui:NavigationViewItem.Icon>
@@ -148,7 +148,7 @@
                                 <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="WindowConsole20" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
-                        <ui:NavigationViewItem x:Name="NavVs2QQRunner" Content="VS2QQ 启动" Tag="vs2qqrunner" Click="NavigationItem_OnClick">
+                        <ui:NavigationViewItem x:Name="NavVs2QQRunner" Content="机器人运行" Tag="vs2qqrunner" Click="NavigationItem_OnClick">
                             <ui:NavigationViewItem.Icon>
                                 <ui:SymbolIcon Style="{StaticResource VslNavSymbolIconStyle}" Symbol="PlayCircle20" />
                             </ui:NavigationViewItem.Icon>
