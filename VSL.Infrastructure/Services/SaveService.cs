@@ -43,11 +43,6 @@ public sealed class SaveService(IServerConfigService serverConfigService) : ISav
             var fileName = WorkspaceLayout.SanitizeFileName(saveName.Trim()) + ".vcdbs";
             var fullPath = Path.Combine(savesPath, fileName);
 
-            if (!File.Exists(fullPath))
-            {
-                await using var _ = File.Create(fullPath);
-            }
-
             profile.SaveDirectory = savesPath;
             var setResult = await SetActiveSaveAsync(profile, fullPath, cancellationToken);
             if (!setResult.IsSuccess)

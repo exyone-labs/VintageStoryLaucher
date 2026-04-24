@@ -203,18 +203,36 @@ public sealed class ServerProcessService(IPackageService packageService) : IServ
         var logsPath = WorkspaceLayout.GetLogsPath(profile.DataPath);
         Directory.CreateDirectory(logsPath);
 
-        var filesToProbe = new[]
+        var activeSaveDirectory = Path.GetDirectoryName(profile.ActiveSaveFile);
+        if (!string.IsNullOrWhiteSpace(activeSaveDirectory))
         {
-            profile.ActiveSaveFile,
+            var saveDirectoryProbeResult = ProbeDirectoryWrite(activeSaveDirectory);
+            if (!saveDirectoryProbeResult.IsSuccess)
+            {
+                return saveDirectoryProbeResult;
+            }
+        }
+
+        if (File.Exists(profile.ActiveSaveFile))
+        {
+            var saveFileProbeResult = ProbeReadWrite(profile.ActiveSaveFile, allowCreate: false);
+            if (!saveFileProbeResult.IsSuccess)
+            {
+                return saveFileProbeResult;
+            }
+        }
+
+        var logFilesToProbe = new[]
+        {
             Path.Combine(logsPath, "server-main.log"),
             Path.Combine(logsPath, "server-chat.log"),
             Path.Combine(logsPath, "server-debug.log"),
             Path.Combine(logsPath, "server-audit.log")
         };
 
-        foreach (var filePath in filesToProbe)
+        foreach (var filePath in logFilesToProbe)
         {
-            var probeResult = ProbeReadWrite(filePath);
+            var probeResult = ProbeReadWrite(filePath, allowCreate: true);
             if (!probeResult.IsSuccess)
             {
                 return probeResult;
@@ -224,7 +242,32 @@ public sealed class ServerProcessService(IPackageService packageService) : IServ
         return OperationResult.Success();
     }
 
-    private static OperationResult ProbeReadWrite(string filePath)
+    private static OperationResult ProbeDirectoryWrite(string directoryPath)
+    {
+        try
+        {
+            Directory.CreateDirectory(directoryPath);
+            var probePath = Path.Combine(directoryPath, $".vsl-write-test-{Guid.NewGuid():N}.tmp");
+            using var stream = new FileStream(
+                probePath,
+                FileMode.CreateNew,
+                FileAccess.ReadWrite,
+                FileShare.None,
+                1,
+                FileOptions.DeleteOnClose);
+            return OperationResult.Success();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return OperationResult.Failed($"服务器目录无写入权限：{directoryPath}", ex);
+        }
+        catch (IOException ex)
+        {
+            return OperationResult.Failed($"服务器目录被占用或不可写：{directoryPath}", ex);
+        }
+    }
+
+    private static OperationResult ProbeReadWrite(string filePath, bool allowCreate)
     {
         try
         {
@@ -236,10 +279,14 @@ public sealed class ServerProcessService(IPackageService packageService) : IServ
 
             using var stream = new FileStream(
                 filePath,
-                FileMode.OpenOrCreate,
+                allowCreate ? FileMode.OpenOrCreate : FileMode.Open,
                 FileAccess.ReadWrite,
                 FileShare.None);
             return OperationResult.Success();
+        }
+        catch (FileNotFoundException ex)
+        {
+            return OperationResult.Failed($"服务器文件不存在：{filePath}", ex);
         }
         catch (UnauthorizedAccessException ex)
         {
