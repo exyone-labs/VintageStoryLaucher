@@ -46,7 +46,7 @@
                             <CheckBox Content="追踪"
                                       Margin="0,0,8,8"
                                       VerticalAlignment="Center"
-                                      IsChecked="{Binding IsConsoleAutoFollow}" />
+                                      IsChecked="{Binding IsAutoFollow}" />
                             <Button Content="下载"
                                     Style="{StaticResource VslToolbarButtonStyle}" Command="{Binding DownloadConsoleLogCommand}" />
                             <Button Content="清空"
